@@ -100,7 +100,7 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .game{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:20px;align-items:start}
 .board-wrap{min-width:0}
 .board{container-type:inline-size;width:100%;max-width:940px;margin:0 auto;aspect-ratio:1;display:grid;grid-template-columns:1.5fr repeat(11,1fr) 1.5fr;grid-template-rows:1.5fr repeat(11,1fr) 1.5fr;gap:.35cqi;background:var(--b-frame);border-radius:2.2cqi;padding:.9cqi;box-shadow:0 1.2cqi 0 #13264A,0 2cqi 4cqi rgba(0,0,0,.25)}
-.cell{position:relative;background:var(--b-cell);color:var(--b-ink);border:0;border-radius:.7cqi;padding:0;display:flex;flex-direction:column;align-items:stretch;cursor:pointer;text-align:center;min-width:0;min-height:0;overflow:hidden;font-size:clamp(6px,.95cqi,11px);line-height:1.05}
+.cell{position:relative;background:var(--b-cell);color:var(--b-ink);border:0;border-radius:.7cqi;padding:0;display:flex;flex-direction:column;align-items:stretch;cursor:pointer;text-align:center;min-width:0;min-height:0;overflow:hidden;font-size:clamp(7px,1.25cqi,15px);line-height:1.05}
 .cell:hover{filter:brightness(1.04)}
 .cell.sel{box-shadow:inset 0 0 0 .45cqi var(--gold);z-index:1}
 .cell.landed{animation:land 1.4s ease-out}
@@ -122,8 +122,8 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .pawns{position:absolute;right:.3cqi;top:1.6cqi;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.2cqi;max-width:85%}
 .cell.special .pawns{top:.3cqi}
 .pawns .pawn{width:clamp(9px,1.8cqi,20px);height:clamp(9px,1.8cqi,20px);font-size:clamp(6px,1cqi,11px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 1.5px #fff}
-@container (max-width:620px){.cell .rn,.cell.special .ss{display:none}.cell .band{font-size:clamp(5px,1.2cqi,9px)}}
-@container (max-width:430px){.cell .band{color:transparent;padding:.5cqi 0}.cell.special .sl{display:none}.cell.corner .sl{display:block}}
+@container (max-width:460px){.cell .rn,.cell.special .ss{display:none}.cell .band{font-size:clamp(5px,1.2cqi,9px)}}
+@container (max-width:340px){.cell .band{color:transparent;padding:.5cqi 0}.cell.special .sl{display:none}.cell.corner .sl{display:block}}
 
 .center{grid-area:2/2/13/13;background:radial-gradient(circle at 50% 35%,var(--b-center-2),var(--b-center) 70%);border-radius:1.2cqi;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1.2cqi;padding:2cqi;color:#fff;min-width:0;min-height:0;overflow:hidden}
 .c-logo{font-family:var(--display);font-size:clamp(18px,5.4cqi,58px);line-height:.9;text-align:center;letter-spacing:.02em;text-shadow:0 .4cqi 0 rgba(0,0,0,.35)}
@@ -482,6 +482,7 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
   details.rules>summary{min-height:40px;display:flex;align-items:center}
   .coach.inline{position:static;left:auto;right:auto;top:auto;bottom:auto;width:auto;margin:0 0 12px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 }
+.coach.inline{position:static;width:auto;margin:0;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 @media (orientation:landscape) and (max-height:560px){
   .coach.inline{position:static;width:auto;margin:0 0 10px}
 }
@@ -525,6 +526,43 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
 .shr .note{font-size:12px;color:#6A7180}
 @media (max-width:900px){ #sFeed{order:2} }
 @media (prefers-reduced-motion:reduce){.feed li.new,.pawns .pawn.turn,.mover.hop{animation:none}}
+/* Plateau : textes plus grands, contrastes plus nets */
+.cell .band{font-size:clamp(6px,1.05cqi,12px);padding:.45cqi .2cqi}
+.cell .ico{font-size:clamp(12px,3cqi,34px)}
+.cell .rn{font-weight:900;letter-spacing:-.01em}
+.cell.special .sl{font-size:clamp(7px,1.3cqi,15px)}
+.cell .owners b{width:1.3cqi;height:1.3cqi;min-width:6px;min-height:6px;box-shadow:0 0 0 1.5px #fff}
+.cell.sel{box-shadow:inset 0 0 0 .6cqi var(--gold)}
+@media (min-width:901px){
+  .board-wrap{position:sticky;top:10px}
+  .board{max-width:min(940px, calc(100vh - 118px), calc(100dvh - 118px))}
+}
+@media (min-width:901px) and (min-aspect-ratio:3/2){ .board-wrap .bctl{position:absolute;left:0;top:0;z-index:3;flex-direction:column;align-items:flex-start} }
+.cellinfo .list.zone .trow .tn .note{display:none}
+.celltip{position:fixed;left:0;top:0;z-index:50;pointer-events:none;background:#FFFDF6;color:#1C2333;border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);min-width:180px;max-width:260px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.celltip[hidden]{display:none}
+.celltip .tt{font-weight:900;font-size:16px}
+.celltip .tr{font-weight:800;font-size:18px}
+.celltip .tn{font-size:13px;font-weight:700;line-height:1.5;color:#3C4558}
+.celltip .tn.faint{color:#8A90A0;font-weight:600;font-size:12px}
+.celltip .pawn{width:16px;height:16px;font-size:9px;vertical-align:-3px}
+/* Panneau « case » */
+.cellinfo h2 .rchipwrap{font-size:14px;vertical-align:middle;margin-left:6px}
+.cellinfo h3.sub{font-size:15px;margin:14px 0 2px;font-family:inherit;font-weight:900;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.payhere{border-radius:12px;padding:9px 12px;font-size:14px;font-weight:700;line-height:1.4;margin:6px 0}
+.payhere.bad{background:color-mix(in srgb,#C2392B 14%,var(--surface));color:var(--ink)}
+.payhere.ok{background:color-mix(in srgb,#23884C 14%,var(--surface));color:var(--ink)}
+.payhere.good{background:color-mix(in srgb,var(--gold) 22%,var(--surface));color:var(--ink)}
+.tiers span{display:block;font-size:11px}
+.holders{display:flex;flex-direction:column;gap:6px}
+.hrow{display:grid;grid-template-columns:auto auto minmax(40px,1fr) auto;gap:8px;align-items:center;font-size:14px}
+.hrow .bar{position:relative;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.hrow .bar span{position:absolute;inset:0 auto 0 0;background:var(--gold);border-radius:99px}
+.hrow .bar i{position:absolute;top:0;bottom:0;width:2px;background:var(--surface)}
+.hrow .num{text-align:right;line-height:1.1}
+.hrow .num small{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.trow .own{display:inline-flex;align-items:center;gap:5px}
+.trow .own small{font-size:12px;font-weight:800;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 
 <div class="wrap" id="app">
@@ -1731,6 +1769,21 @@ function openSheet(pid){
   sheetPid = pid; clearTimeout(evtTimer); el.innerHTML = sheetHTML(s, p); el.hidden = false;
 }
 
+function tipHTML(s, i){
+  const c = CELLS[i]; if (!c) return '';
+  const here = s.players.filter(p => !p.out && p.pos === i);
+  let body = '';
+  if (c.t === 'pays' || c.t === 'rec'){
+    const hold = alive(s).map(p => ({p, sh: share(s,p.id,c.r)})).filter(x => x.sh > 0).sort((a,b) => b.sh - a.sh);
+    const free = c.t === 'pays' ? ZONE_T[c.z].filter(id => !s.owners[id]).length : 0;
+    body = `<div class="tt">${c.t === 'pays' ? esc(ZONES[c.z].n) : esc(TH.rec) + ' · +' + fmt(RULE.rec) + ' × dés'}</div><div class="tr">${RES[c.r].i} ${esc(RES[c.r].n)}</div>
+      ${c.t === 'pays' ? `<div class="tn">${free} titre${free>1?'s':''} libre${free>1?'s':''} sur ${ZONE_T[c.z].length}</div>` : ''}
+      <div class="tn">${hold.length ? hold.map(x => `${pawn(x.p)} ${esc(x.p.name)} ${x.sh} %${tierOf(x.sh) >= 0 ? ' → ' + fmt(tierRoy(c.r, tierOf(x.sh))) : ''}`).join('<br>') : 'Aucune royalty pour l\'instant'}</div>`;
+  } else if (c.t === 'cont') body = `<div class="tt">${TH.contIco} ${esc(TH.cont)} · ${esc(CONT[c.c].n)}</div>`;
+  else body = `<div class="tt">${SPEC[c.t].i} ${esc(SPEC[c.t].l)}</div>`;
+  return body + (here.length ? `<div class="tn">${here.map(p => pawn(p)).join(' ')} ici</div>` : '') + '<div class="tn faint">Clic : tout le détail</div>';
+}
+
 function showCard(s, card){
   const ev = document.getElementById('evt'); if (!ev || card.d == null) return;
   const by = byId(s, card.by), plus = card.d > 0;
@@ -1797,7 +1850,7 @@ function marketHTML(s){
 
 function titleRow(s,id,extra){
   const t = TITLES[id], o = s.owners[id] ? byId(s, s.owners[id]) : null;
-  return `<div class="trow"><span class="tn">${rchip(t.r)} <span class="note">${esc(ZONES[t.z].n)}</span></span><span class="pct">${t.pct} %</span><span class="num">${extra || (o ? pawn(o) : fmt(t.price))}</span></div>`;
+  return `<div class="trow"><span class="tn">${rchip(t.r)} <span class="note">${esc(ZONES[t.z].n)}</span></span><span class="pct">${t.pct} %</span><span class="num">${extra || (o ? `<span class="own">${pawn(o)}<small>${o.id === me.id ? 'toi' : esc(o.name)}</small></span>` : fmt(t.price))}</span></div>`;
 }
 
 function actionHTML(s, meP, c, myTurn){
@@ -1939,21 +1992,38 @@ function playersHTML(s){
   }).join('')}</div></section>`;
 }
 
+/* Ce que coûte la case à celui qui s'y arrête, maintenant. */
+function payHereHTML(s,r){
+  const meP = byId(s, me.id), rows = alive(s).filter(q => !meP || q.id !== me.id).map(q => ({q, amt: royalty(s,q.id,r)})).filter(x => x.amt > 0);
+  const mine = meP ? royalty(s, me.id, r) : 0, tot = rows.reduce((t,x) => t + x.amt, 0);
+  if (!meP || meP.out) return rows.length ? `<div class="payhere bad">💸 Ici, on paie ${rows.map(x => `<b>${fmt(x.amt)}</b> à ${esc(x.q.name)}`).join(', ')}.</div>` : `<div class="payhere ok">✅ Personne ne touche encore de royalties ${esc(RES[r].n)} : s'arrêter ici ne coûte rien.</div>`;
+  return (tot ? `<div class="payhere bad">💸 Si tu t'arrêtes ici maintenant, tu paies <b>${fmt(tot)}</b>${rows.length === 1 ? ` à ${esc(rows[0].q.name)}` : ' : ' + rows.map(x => `${fmt(x.amt)} à ${esc(x.q.name)}`).join(', ')}.</div>`
+    : `<div class="payhere ok">✅ Si tu t'arrêtes ici maintenant, tu ne paies rien : aucun adversaire n'a ${TIER_MIN[0]} % ${RES[r].n.match(/^[AEIOUÉÈÊHaeiouéèêh]/) ? "d'" : 'de '}${esc(RES[r].n)}.</div>`)
+    + (mine ? `<div class="payhere good">💰 Et chaque adversaire qui s'arrête ici te paie <b>${fmt(mine)}</b>.</div>` : '');
+}
 function resPanel(s,r){
   const holders = alive(s).filter(p => share(s,p.id,r) > 0).sort((a,b) => share(s,b.id,r) - share(s,a.id,r));
-  const B = BASE(r);
-  return `<div class="tiers" style="--k:var(--k-${RES[r].k})">${TIER_MIN.map((m,k) => `<div class="${holders.some(p => tierOf(share(s,p.id,r)) === k) ? 'on' : ''}">${m} %<b class="num">${fmt(tierRoy(r,k))}</b></div>`).join('')}</div>
-    <div class="list">${RES_T[r].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>
-    ${holders.length ? `<p class="note">${holders.map(p => `${esc(p.name)} ${share(s,p.id,r)} %`).join(' · ')}</p>` : ''}`;
+  const nm = esc(RES[r].n);
+  return `<div class="note">Barème : un joueur qui détient au moins ce pourcentage de cette richesse fait payer cette somme à chaque adversaire qui s'arrête sur une case ${nm}.</div>
+    <div class="tiers" style="--k:var(--k-${RES[r].k})">${TIER_MIN.map((m,k) => `<div class="${holders.some(p => tierOf(share(s,p.id,r)) === k) ? 'on' : ''}"><span>dès ${m} %</span><b class="num">${fmt(tierRoy(r,k))}</b></div>`).join('')}</div>
+    <div class="label">Qui possède ${nm}</div>
+    ${holders.length ? `<div class="holders">${holders.map(p => { const sh = share(s,p.id,r), t = tierOf(sh); return `<div class="hrow">${pawn(p)} <b>${esc(p.name)}${p.id === me.id ? ' (toi)' : ''}</b><span class="bar"><span style="width:${Math.min(100,sh)}%"></span>${TIER_MIN.map(m => `<i style="left:${m}%"></i>`).join('')}</span><span class="num"><b>${sh} %</b><small>${t < 0 ? `royalties à ${TIER_MIN[0]} %` : 'fait payer ' + fmt(tierRoy(r,t))}</small></span></div>`; }).join('')}</div>` : `<p class="note">Personne pour l'instant.</p>`}
+    <div class="label">Les ${RES_T[r].length} titres ${nm} <span class="note">· pays, part, prix ou propriétaire</span></div>
+    <div class="list">${RES_T[r].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>`;
 }
 function detailHTML(s){
   const c = CELLS[sel];
   if (c.t === 'pays'){
-    return `<section class="panel"><div class="label">Case · ${CONT[ZONES[c.z].g].n}</div><h2>${esc(ZONES[c.z].n)}</h2>
-      <div class="label">Titres de ce pays</div><div class="list">${ZONE_T[c.z].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>
-      <div class="label">Royalties de la case · ${esc(RES[c.r].n)}</div>${resPanel(s,c.r)}</section>`;
+    const free = ZONE_T[c.z].filter(id => !s.owners[id]).length;
+    return `<section class="panel cellinfo"><div class="label">Case pays · ${CONT[ZONES[c.z].g].n}</div><h2>${esc(ZONES[c.z].n)} <span class="rchipwrap">${rchip(c.r)}</span></h2>
+      <p class="note">En t'arrêtant ici : 1. tu peux acheter jusqu'à ${RULE.maxBuy} titres de ce pays, 2. puis tu paies les royalties ${esc(RES[c.r].n)} (la richesse de la case) à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>
+      ${s.status === 'playing' ? payHereHTML(s,c.r) : ''}
+      <h3 class="sub">1 · Titres à vendre dans ce pays <span class="note">${free}/${ZONE_T[c.z].length} encore libres</span></h3>
+      <p class="note">Un titre = une part de la production mondiale d'une richesse. À droite : son prix s'il est libre, sinon le pion de son propriétaire.</p>
+      <div class="list zone">${ZONE_T[c.z].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>
+      <h3 class="sub">2 · Royalties de la case : ${RES[c.r].i} ${esc(RES[c.r].n)}</h3>${resPanel(s,c.r)}</section>`;
   }
-  if (c.t === 'rec') return `<section class="panel"><div class="label">Case ${TH.rec}</div><h2>${RES[c.r].i} ${esc(RES[c.r].n)}</h2><p class="note">Tu reçois ${fmt(RULE.rec)} × le total des dés, puis tu paies les royalties ${esc(RES[c.r].n)}.</p>${resPanel(s,c.r)}</section>`;
+  if (c.t === 'rec') return `<section class="panel cellinfo"><div class="label">Case ${TH.rec}</div><h2>${RES[c.r].i} ${esc(RES[c.r].n)}</h2><p class="note">En t'arrêtant ici : 1. tu reçois ${fmt(RULE.rec)} × le total des dés, 2. puis tu paies les royalties ${esc(RES[c.r].n)} à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>${s.status === 'playing' ? payHereHTML(s,c.r) : ''}<h3 class="sub">Royalties de la case : ${esc(RES[c.r].n)}</h3>${resPanel(s,c.r)}</section>`;
   if (c.t === 'cont') return `<section class="panel"><div class="label">Case</div><h2>${TH.contIco} ${TH.cont} · ${CONT[c.c].n}</h2><p class="note">Achète jusqu'à ${RULE.maxBuy} titres de ce continent${CONT[c.c].excl.length ? ` (hors ${CONT[c.c].excl.map(z => ZONES[z].n).join(' et ')})` : ''}, seulement pour des richesses que tu possèdes déjà.</p></section>`;
   const S = SPEC[c.t];
   return `<section class="panel"><div class="label">Case</div><h2>${S.i} ${S.l}</h2><p class="note">${S.d}</p></section>`;
@@ -2047,9 +2117,9 @@ function tips(){
 }
 function placeCoach(box, tgt){
   const game_ = document.getElementById('game');
-  if (!isPhone()){ if (box.parentNode !== game_.parentNode){ game_.parentNode.appendChild(box); } box.classList.remove('inline'); return; }
   const wraps = ['sAuction','sOffer','sAction','sDetail'].map(id => document.getElementById(id));
   let anchor = tgt && wraps.find(w => w && w.contains(tgt) && w.offsetParent !== null);
+  if (!anchor && !isPhone()) anchor = document.getElementById('sAuction');
   if (!anchor){ const tabEl = document.querySelector(`#game [class*="p-${tab}"]`); anchor = tab === 'jeu' ? document.getElementById('bctl') : tabEl; }
   if (!anchor) anchor = game_.firstElementChild;
   box.classList.add('inline');
@@ -2494,6 +2564,22 @@ app.addEventListener('click', e => {
   }
 });
 app.addEventListener('toggle', e => { if (e.target && e.target.id === 'edMore') edMoreOpen = e.target.open; }, true);
+/* Loupe : au survol d'une case (souris uniquement), un encadré lisible montre la case en grand. */
+const tipEl = document.createElement('div'); tipEl.className = 'celltip'; tipEl.hidden = true; document.body.appendChild(tipEl);
+let tipCell = -1;
+app.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || !game || !matchMedia('(hover:hover) and (pointer:fine)').matches){ return; }
+  const c = e.target.closest && e.target.closest('#board .cell');
+  if (!c){ if (!tipEl.hidden){ tipEl.hidden = true; tipCell = -1; } return; }
+  const i = Number(c.dataset.id);
+  if (i !== tipCell){ tipCell = i; applyRules(game.rules); applyTheme(game.options.theme); tipEl.innerHTML = tipHTML(game, i); }
+  tipEl.hidden = false;
+  const W = tipEl.offsetWidth, H = tipEl.offsetHeight;
+  let x = e.clientX + 18, y = e.clientY + 18;
+  if (x + W > innerWidth - 8) x = e.clientX - W - 18; if (y + H > innerHeight - 8) y = e.clientY - H - 18;
+  tipEl.style.transform = `translate(${Math.max(8,x)}px, ${Math.max(8,y)}px)`;
+});
+app.addEventListener('pointerleave', () => { tipEl.hidden = true; tipCell = -1; });
 app.addEventListener('submit', e => {
   if (e.target.id === 'joinForm'){ e.preventDefault(); joinByCode(); }
   if (e.target.id === 'chatForm'){ e.preventDefault(); const i = document.getElementById('chatIn'), v = i ? i.value.trim() : '';
