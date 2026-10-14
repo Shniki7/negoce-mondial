@@ -168,7 +168,7 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .cart .imp{font-size:13px;font-weight:700}
 .cart .imp b.up{color:var(--good)}
 .trow.picked{box-shadow:inset 0 0 0 2px var(--s-ench)}
-.scroll{max-height:300px;overflow-y:auto}
+@media (min-width:901px){.scroll{max-height:300px;overflow-y:auto}}
 .players{display:flex;flex-direction:column;gap:6px}
 .pl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px}
 .pl.turn{background:var(--gold-soft)}
@@ -228,7 +228,7 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .editor{display:flex;flex-direction:column;gap:16px}
 .edbar .row{align-items:end}
 .edtabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:6px}
-.edtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.seg.edtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .edtabs button{font-size:14px;padding:8px 14px;white-space:nowrap;flex:none}
 .pill.bad{background:var(--bad);color:#fff}.pill.warn{background:var(--gold);color:#1C2333}.pill.ok{background:var(--good);color:#fff}
 .edgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;align-items:start}
@@ -307,6 +307,38 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .hostopts{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--bg)}
 .createform{display:flex;flex-direction:column;gap:12px}
 [data-act="hostOpts"]{align-self:flex-start;text-align:left}
+.reclaim{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;background:var(--bg);margin-top:4px}
+/* En-tête de partie et menu */
+.hdr-r{display:flex;align-items:center;gap:8px}
+.menuwrap{position:relative}
+.menubtn{font-size:18px;line-height:1;padding:6px 12px}
+.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--surface);border-radius:14px;box-shadow:0 0 0 1px var(--line),0 12px 32px rgba(0,0,0,.18);padding:6px;display:flex;flex-direction:column;min-width:230px}
+.menu button{border:0;background:none;text-align:left;padding:11px 12px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;color:var(--ink)}
+.menu button:hover{background:var(--bg)}
+.menu button.danger{color:var(--bad)}
+.closex{float:right;margin:-4px -4px 0 8px}
+.acct{display:flex;align-items:center;gap:8px}
+.acct .who{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:13px}
+.acct img{width:24px;height:24px;border-radius:50%}
+.acctnote{color:var(--brand);font-weight:700}
+/* Achat : barre de validation collante au-dessus de la barre d'onglets */
+.cartdock{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;flex-direction:column;gap:8px;background:var(--surface);padding-top:8px;box-shadow:0 -10px 14px -10px rgba(0,0,0,.15)}
+@media (min-width:901px){.cartdock{bottom:0}}
+/* Cartes de titres compactes */
+.tcard.by-res .tc-top{background:var(--g)}
+.tcard.by-res.free .tc-top{background:transparent;color:var(--g)}
+@media (max-width:900px){
+  .rb .tcards,.tcards{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+  .top .logo{font-size:21px;white-space:nowrap}.cashpill{white-space:nowrap;padding:5px 10px}
+  .tc-top{padding:7px 9px}.tc-name{font-size:12.5px}.tc-ico{font-size:20px}
+  .tc-mid{padding:8px 9px 4px}.tc-pct{font-size:30px}.tc-pct small{font-size:15px}
+  .tc-bot{padding:7px 9px;font-size:11.5px;flex-direction:column;align-items:flex-start;gap:2px}
+  .top{flex-wrap:nowrap}.top .logo{min-width:0}.top .logo small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .edchips{display:flex;overflow-x:auto;flex-wrap:nowrap;gap:6px;padding-bottom:6px;scrollbar-width:thin}
+  .edchip{flex:0 0 auto;min-width:122px}
+  #edMore summary{cursor:pointer;padding:6px 0}
+  .trow{padding:8px 10px;gap:8px}
+}
 /* Ledger : onglets du panneau latéral */
 .ltabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:999px;box-shadow:0 0 0 1px var(--line)}
 .ltabs button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer;color:var(--muted);position:relative}
@@ -414,7 +446,7 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
   .dock .dt small{display:block;font-weight:700;font-size:12px;opacity:.75}
 }
 @media (max-width:440px){.tradecols{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:900px){.toast{bottom:calc(132px + env(safe-area-inset-bottom,0px));text-align:center}}
+@media (max-width:900px){.toast{bottom:calc(132px + env(safe-area-inset-bottom,0px));text-align:center;border-radius:14px;width:max-content;max-width:calc(100% - 32px)}}
 /* Téléphone à l'horizontale : barre d'onglets sur le côté, plateau à gauche, actions à droite */
 @media (orientation: landscape) and (max-height: 560px) and (max-width: 1100px){
   body{padding:0 calc(12px + env(safe-area-inset-right,0px)) 0 calc(80px + env(safe-area-inset-left,0px))}
@@ -748,6 +780,7 @@ function validOffer(s,o){
 const ACT = {
   join(s,who,name){
     if (s.status !== 'lobby' || byId(s,who) || s.players.length >= 6 || !name) return false;
+    if (s.players.some(p => p.name.toLowerCase() === String(name).toLowerCase())) return false;
     const used = s.players.map(p => p.color);
     s.players.push({id:who, name, color:PCOLORS.find(c => !used.includes(c)), cash:0, pos:0});
     log(s, `${name} rejoint la table`);
@@ -924,6 +957,20 @@ const ACT = {
     if ('rules' in arg){ s.rules = arg.rules ? sanitizeRules(arg.rules) : null; s.options.rulesName = arg.rules ? String(arg.name || 'Règles maison').slice(0, 40) : null; }
     log(s, `L'hôte choisit : thème ${s.options.theme === 'noir' ? 'Marché noir' : 'Classique'}, règles ${s.options.rulesName ? '« ' + s.options.rulesName + ' »' : 'officielles'}`);
   },
+  /* Reprendre sa place depuis un autre appareil ou navigateur : la place change d'identifiant, tout le reste suit. */
+  reclaim(s,who,pid){
+    const p = byId(s,pid);
+    if (!p || p.bot || p.id === who || byId(s,who) || s.status === 'closed') return false;
+    const sw = v => v === pid ? who : v;
+    p.id = who; s.host = sw(s.host); s.winner = sw(s.winner);
+    Object.keys(s.owners || {}).forEach(k => { s.owners[k] = sw(s.owners[k]); });
+    if (s.offer){ s.offer.from = sw(s.offer.from); s.offer.to = sw(s.offer.to); }
+    if (s.auction){ s.auction.seller = sw(s.auction.seller); s.auction.bidder = sw(s.auction.bidder); }
+    if (s.lastLand) s.lastLand.pid = sw(s.lastLand.pid);
+    if (s.card) s.card.by = sw(s.card.by);
+    (s.chat || []).forEach(m => { m.by = sw(m.by); });
+    log(s, `${p.name} a repris sa place depuis un autre appareil`);
+  },
   say(s,who,text){
     const p = byId(s,who), t = String(text || '').trim().slice(0, 200);
     if (!p || !t) return false;
@@ -997,7 +1044,7 @@ let lastRoll = null, lastLand = null, confirmKey = null, toastTimer = null, botT
 let picks = [], draft = {open:false, to:null, give:[], take:[], cg:0, ct:0}, bidAmt = null;
 let seenChat = null, lastToastChat = 0;
 let lastCard = null, evtTimer = null, cart = [], cartKey = null;
-let pendingCode = null, hostOpts = false;
+let pendingCode = null, hostOpts = false, menuOpen = false, selUser = false, edMoreOpen = null;
 let tab = 'jeu', ledger = 'titres', pfView = 'res', mkFilter = 'all', mkOpen = null;
 const store = {
   get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
@@ -1187,7 +1234,7 @@ function cellHTML(s,i,landed){
 
 function render(){
   if (!db) return;
-  if (view === 'editor' && ed){ applyRules(ed.rules); applyTheme(ed.theme); renderEditor(); return; }
+  if (view === 'editor' && ed){ applyRules(ed.rules); applyTheme(ed.theme); renderEditor(); edCenterChip(); return; }
   applyRules(gid && game ? game.rules : null);
   applyTheme(gid && game ? game.options.theme : 'classique');
   if (gid && game && game.status !== 'closed') renderGame(); else renderLobby();
@@ -1209,6 +1256,23 @@ function rulesHTML(){
 }
 
 function ago(t){ if (!t) return 'créée'; const m = Math.max(0, Math.round((Date.now() - t)/60000)); return m < 1 ? "créée à l'instant" : m < 60 ? `créée il y a ${m} min` : m < 1440 ? `créée il y a ${Math.round(m/60)} h` : `créée il y a ${Math.round(m/1440)} j`; }
+function reclaimHTML(s){
+  const humans = s.players.filter(p => !p.bot && !p.out);
+  if (!humans.length || !me.id) return '';
+  return `<div class="reclaim"><div class="label">Tu fais déjà partie de cette partie ?</div>
+    <p class="note">Si tu l'as rejointe depuis un autre téléphone ou un autre navigateur, le jeu ne te reconnaît pas ici. Touche ton nom pour reprendre ta place.</p>
+    <div class="row">${humans.map(p => `<button class="btn sm ${confirmKey === 'rc:' + p.id ? 'red' : 'ghost'}" data-act="reclaim" data-id="${esc(p.id)}">${pawn(p)} ${confirmKey === 'rc:' + p.id ? `Confirmer : je suis ${esc(p.name)}` : `C'est moi : ${esc(p.name)}`}</button>`).join('')}</div></div>`;
+}
+function authInfo(){ try { return window.NM_AUTH && window.NM_AUTH.info ? window.NM_AUTH.info() : null; } catch(e){ return null; } }
+function acctHTML(){
+  const a = authInfo(); if (!a) return '';
+  return a.anonymous ? `<button class="btn sm gold" data-act="login">Se connecter avec Google</button>`
+    : `<div class="acct"><span class="who">${a.photo ? `<img src="${esc(a.photo)}" alt="" referrerpolicy="no-referrer">` : '👤'} ${esc(a.name || 'Connecté')}</span><button class="btn sm ghost" data-act="logout">Se déconnecter</button></div>`;
+}
+function authItemHTML(){
+  const a = authInfo(); if (!a) return '';
+  return a.anonymous ? '<button data-act="login" role="menuitem">🔐 Se connecter avec Google</button>' : `<button data-act="logout" role="menuitem">👤 ${esc(a.name || 'Compte')} · se déconnecter</button>`;
+}
 function joinByCode(code){
   const el = document.getElementById('joinCode');
   code = String(code || (el && el.value) || '').trim().toUpperCase();
@@ -1220,7 +1284,7 @@ function joinByCode(code){
 function renderLobby(){
   if (!document.getElementById('lobby')){
     app.innerHTML = `
-    <header class="top"><div class="logo">Négoce <span>Mondial</span><small>Le jeu des richesses de la planète · 2 à 6 joueurs</small></div></header>
+    <header class="top"><div class="logo">Négoce <span>Mondial</span><small>Le jeu des richesses de la planète · 2 à 6 joueurs</small></div><div id="acct">${acctHTML()}</div></header>
     <main class="lobby" id="lobby">
       <section class="hero">
         <div>
@@ -1234,6 +1298,7 @@ function renderLobby(){
         <div class="field"><label class="label" for="pseudo">Ton pseudo</label><input id="pseudo" maxlength="16" autocomplete="nickname" placeholder="Ex. Tanguy"></div>
         <form class="joinrow" id="joinForm"><label class="sr" for="joinCode">Code de la partie</label><input id="joinCode" maxlength="4" placeholder="Code, ex. 01UP" autocomplete="off" autocapitalize="characters"><button class="btn" type="submit">Rejoindre</button></form>
         <p class="note">Un pote t'a donné un code ? Tape-le ici. Sinon, touche une partie de la liste.</p>
+        ${authInfo() && authInfo().anonymous ? '<p class="note acctnote">🔐 Connecte-toi avec Google (en haut) pour être reconnu sur tous tes appareils.</p>' : ''}
         <div class="tables" id="tables"></div>
       </section>
       <section class="panel">
@@ -1324,7 +1389,14 @@ function renderGame(){
   lastCard = s.card ? s.card.seq : 0;
   const modeName = {classic:'Classique', rapide:'Rapide', chrono:'Chrono'}[s.options.mode];
   setHTML('gHead', `<div class="logo">Négoce <span>Mondial</span><small>Partie ${esc(s.code)} · ${modeName}${THEME === 'noir' ? ' · Marché noir' : ''}${s.options.rulesName ? ' · Règles « ' + esc(s.options.rulesName) + ' »' : ''}${s.options.mode === 'chrono' && s.status === 'playing' ? ' · <span id="chrono" class="num"></span> restantes' : ''}</small></div>
-    <div class="row">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}${s.status === 'playing' && meP && !meP.out ? `<button class="btn sm red" data-act="quit">${confirmKey === 'quit' ? "Confirmer l'abandon" : 'Abandonner'}</button>` : ''}<button class="btn sm ghost" data-act="back">Parties</button></div>`);
+    <div class="hdr-r">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}
+      <div class="menuwrap"><button class="btn sm ghost menubtn" data-act="menu" aria-expanded="${menuOpen}" aria-label="Menu">☰</button>
+      ${menuOpen ? `<div class="menu" role="menu">
+        <button data-act="back" role="menuitem">↩ Toutes les parties</button>
+        ${authItemHTML()}
+        <button data-act="tutoReset" role="menuitem">🎓 Revoir le tutoriel</button>
+        ${s.status === 'playing' && meP && !meP.out ? `<button class="danger" data-act="quit" role="menuitem">${confirmKey === 'quit' ? "⚠️ Confirmer l'abandon" : '🏳️ Abandonner la partie'}</button>` : ''}
+      </div>` : ''}</div></div>`);
   const roundTxt = s.status === 'lobby' ? "Salle d'attente" : s.status === 'over' ? 'Partie terminée' : `Tour ${s.round}`;
   const center = `<div class="center">
     <div><div class="c-logo">Négoce <span>Mondial</span></div><div class="c-meta">Partie ${esc(s.code)} · ${roundTxt}</div></div>
@@ -1342,7 +1414,7 @@ function renderGame(){
   setHTML('sAuction', auctionHTML(s, meP));
   keepInput('sOffer', offerHTML(s));
   keepInput('sAction', actionHTML(s, meP, c, myTurn));
-  setHTML('sDetail', detailHTML(s));
+  setHTML('sDetail', (selUser || !isPhone()) ? detailHTML(s).replace('<section class="panel">', '<section class="panel">' + (isPhone() ? '<button class="btn sm ghost closex" data-act="unsel" aria-label="Fermer">✕</button>' : '')) : '');
   setHTML('sPlayers', playersHTML(s));
   setHTML('pTitres', s.status === 'lobby' ? '' : portfolioHTML(s, meP));
   setHTML('pMarche', s.status === 'lobby' ? '' : marketHTML(s));
@@ -1397,13 +1469,14 @@ function dockHTML(s, meP, myTurn, att){
   return `<div class="dt">${what}<small>${esc(cellLabel(meP.pos))}</small></div><button class="btn sm gold" data-act="tab" data-id="jeu">Ouvrir</button>`;
 }
 
-function tcard(s,id){
+function tcard(s,id,mode){
   const t = TITLES[id], o = s.owners[id] ? byId(s,s.owners[id]) : null, mine = !!(o && o.id === me.id), sale = inAuction(s,id);
   const cls = mine ? 'mine' : o ? 'other' : 'free';
   const own = mine ? 'À toi' : o ? `${pawn(o)} ${esc(o.name)}` : 'Libre';
-  return `<button class="tcard ${cls}${sale ? ' sale' : ''}" style="--k:var(--k-${RES[t.r].k});--g:var(--c-${ZONES[t.z].g})" data-act="goZone" data-id="${t.z}" title="${esc(tName(id))}">
-    <span class="tc-top"><span class="tc-ico">${RES[t.r].i}</span><span class="tc-name">${esc(RES[t.r].n)}</span></span>
-    <span class="tc-mid"><span class="tc-pct">${t.pct}<small>%</small></span><span class="tc-zone"><i></i><em>${esc(ZONES[t.z].n)}</em></span></span>
+  const top = mode === 'zone' ? `<span class="tc-ico">${RES[t.r].i}</span><span class="tc-name">${esc(RES[t.r].n)}</span>` : `<span class="tc-name">${esc(ZONES[t.z].n)}</span>`;
+  return `<button class="tcard ${cls}${sale ? ' sale' : ''} by-${mode === 'zone' ? 'zone' : 'res'}" style="--k:var(--k-${RES[t.r].k});--g:var(--c-${ZONES[t.z].g})" data-act="goZone" data-id="${t.z}" title="${esc(tName(id))}">
+    <span class="tc-top">${top}</span>
+    <span class="tc-mid"><span class="tc-pct">${t.pct}<small>%</small></span></span>
     <span class="tc-bot"><b>${fmt(t.price)}</b><span class="own">${own}</span></span></button>`;
 }
 function showCard(s, card){
@@ -1502,7 +1575,8 @@ function actionHTML(s, meP, c, myTurn){
     } else {
       b = `<p class="wait">Partie de <b>${esc(host ? host.name : '—')}</b></p>${count}<p class="note">${summary}</p>
         <div class="field"><label class="label" for="wrPseudo">Ton pseudo</label><input id="wrPseudo" maxlength="16" value="${esc(me.name)}" placeholder="Ex. Nil"></div>
-        <button class="btn gold big" data-act="joinhere" ${dis} ${s.players.length>=6?'disabled':''}>${s.players.length>=6 ? 'Partie complète' : 'Rejoindre cette partie'}</button>`;
+        <button class="btn gold big" data-act="joinhere" ${dis} ${s.players.length>=6?'disabled':''}>${s.players.length>=6 ? 'Partie complète' : 'Rejoindre cette partie'}</button>
+        ${canWrite ? reclaimHTML(s) : ''}`;
     }
     if (meP) b += `<button class="btn sm ghost" data-act="leave" ${dis}>Quitter la partie</button>`;
     return `<section class="panel action"><h2>Salle d'attente</h2>${b}</section>`;
@@ -1518,7 +1592,8 @@ function actionHTML(s, meP, c, myTurn){
   if (!myTurn){
     const ph = {roll:'va lancer les dés', buy:'achète des titres', pick:'choisit les titres à mettre aux enchères', act:'termine son tour'}[s.phase] || 'joue';
     return `<section class="panel action"><h2>Au tour de ${esc(c.name)}</h2><p class="note">${pawn(c)} ${esc(c.name)} ${ph}.${meP && meP.out ? ' Tu as fait faillite, tu peux suivre la fin de la partie.' : !meP ? ' Tu regardes la partie.' : ''}</p>
-      ${s.host === me.id && !c.bot ? `<button class="btn sm ghost" data-act="skip" ${dis}>Passer son tour (joueur absent)</button>` : ''}</section>`;
+      ${s.host === me.id && !c.bot ? `<button class="btn sm ghost" data-act="skip" ${dis}>Passer son tour (joueur absent)</button>` : ''}
+      ${!meP && canWrite ? reclaimHTML(s) : ''}</section>`;
   }
   if (s.phase === 'roll'){
     return `<section class="panel action mine"><h2>À toi de jouer</h2>
@@ -1533,7 +1608,7 @@ function actionHTML(s, meP, c, myTurn){
     const title = b.mode === 'zone' ? ZONES[b.zone].n : b.mode === 'cont' ? `${TH.cont} · ${CONT[b.cont].n}` : SPEC.mondial.l;
     const total = cart.reduce((t,id) => t + TITLES[id].price, 0), after = meP.cash - total;
     const rows = list.map(id => { const t = TITLES[id], on = cart.includes(id), dim = !on && (cart.length >= b.left || t.price > after);
-      return `<div class="trow pickable${on ? ' incart' : ''}${dim ? ' dim' : ''}" data-act="cartT" data-id="${id}" role="button" tabindex="0" aria-pressed="${on}"><span class="tn"><span class="ck">${on ? '✓' : ''}</span>${rchip(t.r)} ${b.mode !== 'zone' ? `<span class="note">${esc(ZONES[t.z].n)}</span>` : `<span class="note">tu as ${share(s,me.id,t.r)} %</span>`}</span><span class="pct">${t.pct} %</span><span class="num">${fmt(t.price)}</span></div>`; }).join('');
+      return `<div class="trow pickable${on ? ' incart' : ''}${dim ? ' dim' : ''}" data-act="cartT" data-id="${id}" role="button" tabindex="0" aria-pressed="${on}"><span class="tn"><span class="ck">${on ? '✓' : ''}</span>${rchip(t.r)} ${b.mode !== 'zone' ? `<span class="note">${esc(ZONES[t.z].n)}</span>` : `${share(s,me.id,t.r) ? `<span class="note">tu as ${share(s,me.id,t.r)} %</span>` : ''}`}</span><span class="pct">${t.pct} %</span><span class="num">${fmt(t.price)}</span></div>`; }).join('');
     const byRes = {}; cart.forEach(id => { const r = TITLES[id].r; byRes[r] = (byRes[r]||0) + TITLES[id].pct; });
     const impact = Object.keys(byRes).map(r => { const a0 = share(s,me.id,r), a1 = a0 + byRes[r], t0 = tierOf(a0), t1 = tierOf(a1);
       return `<div class="imp">${RES[r].i} ${esc(RES[r].n)} : ${a0} % → <b class="${t1 > t0 ? 'up' : ''}">${a1} %</b> · ${t1 < 0 ? `pas encore de royalties (il faut ${TIER_MIN[0]} %)` : `royalty ${fmt(tierRoy(r,t1))}${t1 > t0 ? ' · nouveau palier !' : ''}`}</div>`; }).join('');
@@ -1542,11 +1617,11 @@ function actionHTML(s, meP, c, myTurn){
     return `<section class="panel action mine"><h2>${esc(title)}</h2>
       <p class="note">Coche les titres qui t'intéressent : rien n'est acheté avant ta validation. Jusqu'à <b>${b.left}</b> titre${b.left>1?'s':''} · liquidités <b class="num">${fmt(meP.cash)}</b></p>
       ${rows ? `<div class="list scroll">${rows}</div>` : '<p class="note">Plus aucun titre disponible ici.</p>'}
-      ${cart.length ? `<div class="cart"><div class="ct"><span>Sélection : ${cart.length} titre${cart.length>1?'s':''}</span><span class="num">${fmt(total)}</span></div>
+      ${cart.length ? `<div class="cartdock"><div class="cart"><div class="ct"><span>Sélection : ${cart.length} titre${cart.length>1?'s':''}</span><span class="num">${fmt(total)}</span></div>
         <div class="note">Il te restera <b class="num">${fmt(after)}</b>.</div>${impact}</div>
-        <button class="btn gold big" data-act="cartBuy" ${dis}>Acheter et terminer</button>
+        <button class="btn gold big" data-act="cartBuy" ${dis}>Acheter et terminer</button></div>
         <div class="row"><button class="btn sm ghost" data-act="cartStay" ${dis}>Acheter sans terminer</button><button class="btn sm ghost" data-act="cartClear">Tout décocher</button><button class="btn sm ghost" data-act="endBuy" ${dis}>Terminer sans acheter</button></div>`
-      : `<button class="btn big" data-act="endBuy" ${dis}>${b.n ? 'Terminer' : 'Ne rien acheter'}${roy ? ' · ' + roy : ''}</button>`}
+      : `<div class="cartdock"><button class="btn big" data-act="endBuy" ${dis}>${b.n ? 'Terminer' : 'Ne rien acheter'}</button></div>`}
       ${sold ? `<div class="label">Déjà vendus</div><div class="list">${sold}</div>` : ''}
       ${b.res ? `<p class="note">En terminant, tu paies les royalties ${esc(RES[b.res].n)} aux joueurs qui en détiennent au moins ${TIER_MIN[0]} %.</p>` : ''}</section>`;
   }
@@ -1849,7 +1924,7 @@ function renderEditor(){
           <div class="field" style="flex:1 1 150px"><label class="label" for="edKind">Catégorie</label><select id="edKind" data-edkind="1">${Object.keys(KINDS).map(k => `<option value="${k}" ${RES[r].k === k ? 'selected' : ''}>${esc(KINDS[k])}</option>`).join('')}</select></div>
         </div>
         <div id="edNameAct">${nameActHTML()}</div>
-        <details class="icodet" open><summary>Choisir une icône</summary><div class="icopal">${ICONS.map(e => `<button class="ico${RES[r].i === e ? ' on' : ''}" data-act="edIcon" data-id="${e}" aria-label="Icône ${e}">${e}</button>`).join('')}</div></details>
+        <details class="icodet" ${isPhone() ? '' : 'open'}><summary>Choisir une icône</summary><div class="icopal">${ICONS.map(e => `<button class="ico${RES[r].i === e ? ' on' : ''}" data-act="edIcon" data-id="${e}" aria-label="Icône ${e}">${e}</button>`).join('')}</div></details>
         <div class="field"><label class="label" for="edV">Valeur de toute la production (100 %), en M€</label><input id="edV" type="number" min="0.5" step="0.1" inputmode="decimal" value="${mE(RR.v)}" data-edv="1"></div>
         <p class="note">Le prix d'un titre est proportionnel à sa part : ${fmt(RR.v)} × %. Les royalties partent de ${fmt(Math.max(50, Math.round(RR.v/R.div/50)*50))} (valeur ÷ ${R.div}).</p>
         <div class="edtable"><div class="edrow hd"><span>Pays</span><span>Part</span><span>Prix</span><span></span></div>${rows}</div>
@@ -1900,25 +1975,29 @@ function renderEditor(){
   }
   app.innerHTML = `
   <header class="top"><div class="logo">Atelier <span>des règles</span><small>Modifie les titres, le plateau, les cartes et l'économie. L'audit se recalcule en direct.</small></div>
-    <div class="row"><button class="btn sm ghost" data-act="edClose">Retour aux parties</button></div></header>
+    <div class="row"><button class="btn sm ghost" data-act="edClose" style="white-space:nowrap">← Parties</button></div></header>
   <main class="editor">
     <section class="panel edbar">
       <div class="row edrowtop">
-        <div class="field" style="flex:1 1 200px"><label class="label" for="edName">Nom de ces règles</label><input id="edName" maxlength="40" value="${esc(ed.name)}"></div>
+        <div class="field" style="flex:1 1 200px"><label class="label" for="edName">Nom de ces règles</label><div class="row" style="flex-wrap:nowrap"><input id="edName" maxlength="40" value="${esc(ed.name)}" style="flex:1;min-width:0"><button class="btn gold" data-act="edSave" ${!canWrite || busy ? 'disabled' : ''}>Enregistrer</button></div></div>
+      </div>
+      <details id="edMore" ${edMoreOpen === null ? (isPhone() ? '' : 'open') : (edMoreOpen ? 'open' : '')}><summary class="label">Plus d'options : thème affiché, ouvrir, copier, supprimer</summary>
+      <div class="row edrowtop">
         <div class="field" style="flex:1 1 160px"><label class="label" for="edTheme">Noms affichés</label><select id="edTheme"><option value="classique" ${ed.theme !== 'noir' ? 'selected' : ''}>Classique</option><option value="noir" ${ed.theme === 'noir' ? 'selected' : ''}>Marché noir</option></select></div>
         <div class="field" style="flex:1 1 200px"><label class="label" for="edLoad">Ouvrir</label><select id="edLoad"><option value="">Règles officielles</option>${presets.map(p => `<option value="${esc(p.id)}" ${p.id === ed.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
       </div>
       <div class="row">
-        <button class="btn gold" data-act="edSave" ${!canWrite || busy ? 'disabled' : ''}>${ed.id ? 'Enregistrer' : 'Enregistrer ces règles'}</button>
         ${ed.id ? `<button class="btn ghost" data-act="edSaveNew" ${!canWrite || busy ? 'disabled' : ''}>Enregistrer une copie</button><button class="btn sm red" data-act="edDelete" ${!canWrite || busy ? 'disabled' : ''}>${ed.confirm === 'del' ? 'Confirmer la suppression' : 'Supprimer'}</button>` : ''}
         <button class="btn sm ghost" data-act="edReset">${ed.confirm === 'reset' ? 'Confirmer : tout remettre' : 'Tout remettre aux règles officielles'}</button>
       </div>
       <p class="note">Les règles enregistrées apparaissent dans « Règles » à la création d'une partie. Une partie en cours garde les règles avec lesquelles elle a commencé.</p>
+      </details>
     </section>
     <nav class="seg edtabs" aria-label="Sections">${T.map(([k,n]) => `<button class="${ed.tab === k ? 'on' : ''}" data-act="edTab" data-id="${k}" aria-pressed="${ed.tab === k}">${n}${k === 'audit' ? ` <span class="pill ${A.rows.some(x => statusOf(x) === 'bad') || A.cellIssues.length ? 'bad' : A.rows.some(x => statusOf(x) === 'warn') ? 'warn' : 'ok'}">${A.rows.filter(x => statusOf(x) !== 'ok').length + A.cellIssues.length}</span>` : ''}</button>`).join('')}</nav>
     ${body}
   </main>`;
 }
+function edCenterChip(){ const box = document.getElementById('edResList'), on = box && box.querySelector('.edchip.on'); if (box && on && box.scrollWidth > box.clientWidth) box.scrollLeft = on.offsetLeft - box.clientWidth/2 + on.clientWidth/2; }
 function newsSum(R){
   const news = R.news || DEFAULT_NEWS, n = news.length, mean = n ? news.reduce((t,c) => t + c.d, 0)/n : 0;
   const pos = news.filter(c => c.d > 0).length;
@@ -2056,7 +2135,12 @@ app.addEventListener('change', e => {
 app.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act, id = b.dataset.id;
-  if (a !== 'quit' && a !== 'delGame' && confirmKey) confirmKey = null;
+  if (a !== 'quit' && a !== 'delGame' && a !== 'reclaim' && confirmKey) confirmKey = null;
+  if (a === 'menu'){ menuOpen = !menuOpen; render(); return; }
+  if (menuOpen && a !== 'quit'){ menuOpen = false; }
+  if (a === 'login'){ window.NM_AUTH && window.NM_AUTH.google().catch(err => toast(window.NM_AUTH.explain(err))); return; }
+  if (a === 'logout'){ window.NM_AUTH && window.NM_AUTH.signOut(); return; }
+  if (a === 'reclaim'){ if (confirmKey === 'rc:' + id){ confirmKey = null; mutate(ACT.reclaim, id); } else { confirmKey = 'rc:' + id; render(); } return; }
   if (a === 'delGame'){
     if (confirmKey === 'del:' + id){ confirmKey = null; db.doc('games/' + id).delete().then(() => toast('Partie supprimée.')).catch(() => toast('La suppression a échoué. Réessaie.')); }
     else confirmKey = 'del:' + id;
@@ -2065,9 +2149,12 @@ app.addEventListener('click', e => {
   if (a.startsWith('ed')){ if (a === 'edOpen'){ const rs = document.getElementById('rulesSel'); edOpen(rs && rs.value || null); } else if (ed) edAct(a, id); return; }
   switch (a){
     case 'create': if (!busy) createGame(); break;
-    case 'join': { const n = readPseudo(); if (!n) return; openGame(id); mutate(ACT.join, n); break; }
+    case 'join': { const n = readPseudo(); if (!n) return; const g = games.find(x => x._id === id);
+      if (g && g.players.some(p => p.name.toLowerCase() === n.toLowerCase())){ openGame(id); toast(`Le pseudo ${n} est déjà pris dans cette partie. Si c'est toi sur un autre appareil, touche « C'est moi ».`); break; }
+      openGame(id); mutate(ACT.join, n); break; }
     case 'joinhere': { const el = document.getElementById('wrPseudo'), v = ((el && el.value) || me.name || '').trim().slice(0,16);
       if (!v){ toast('Choisis un pseudo pour rejoindre.'); if (el) el.focus(); return; }
+      if (game && game.players.some(p => p.name.toLowerCase() === v.toLowerCase())){ toast(`Le pseudo ${v} est déjà pris dans cette partie. Si c'est toi sur un autre appareil, touche « C'est moi ».`); return; }
       me.name = v; store.set('nm.pseudo', v); mutate(ACT.join, v); break; }
     case 'copyLink': { const el = document.getElementById('invLink'); if (!el) return;
       try { navigator.clipboard.writeText(el.value).then(() => toast('Lien copié. Colle-le dans ta conversation avec tes potes.'), () => { el.select(); toast('Sélectionné : fais Ctrl+C pour copier.'); }); } catch(err){ el.select(); toast('Sélectionné : fais Ctrl+C pour copier.'); }
@@ -2079,7 +2166,8 @@ app.addEventListener('click', e => {
     case 'createClose': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = true; if (i) i.hidden = false; } break; }
     case 'open': openGame(id); break;
     case 'back': openGame(null); break;
-    case 'sel': sel = Number(id); render(); break;
+    case 'sel': sel = Number(id); selUser = true; render(); { const d = document.getElementById('sDetail'); if (d && isPhone()) d.scrollIntoView({block:'nearest', behavior:'smooth'}); } break;
+    case 'unsel': selUser = false; render(); break;
     case 'quit': if (confirmKey === 'quit'){ confirmKey = null; mutate(ACT.quit); } else { confirmKey = 'quit'; render(); } break;
     case 'cartT': { const g = game, m = g && byId(g, me.id); if (!g || !g.buy || !m) return;
       const i = cart.indexOf(id);
@@ -2123,11 +2211,13 @@ app.addEventListener('click', e => {
     default: if (ACT[a]) mutate(ACT[a], id);
   }
 });
+app.addEventListener('toggle', e => { if (e.target && e.target.id === 'edMore') edMoreOpen = e.target.open; }, true);
 app.addEventListener('submit', e => {
   if (e.target.id === 'joinForm'){ e.preventDefault(); joinByCode(); }
   if (e.target.id === 'chatForm'){ e.preventDefault(); const i = document.getElementById('chatIn'), v = i ? i.value.trim() : '';
     if (!v) return; if (busy){ toast('Une seconde, une action est en cours…'); return; } i.value = ''; mutate(ACT.say, v, true); }
 });
+document.addEventListener('click', e => { if (menuOpen && !e.target.closest('.menuwrap')){ menuOpen = false; render(); } });
 app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.trow.pickable')){ e.preventDefault(); e.target.click(); } });
 app.addEventListener('input', e => {
   if (e.target.id === 'tGive') draft.cg = Math.max(0, Math.round((+e.target.value || 0)*1000/100)*100);

@@ -10,10 +10,42 @@
   } else {
     firebase.initializeApp(cfg);
     const auth = firebase.auth(), fs = firebase.firestore();
-    ready = new Promise(resolve => {
-      auth.onAuthStateChanged(u => { if (u) resolve(u); });
-      auth.signInAnonymously().catch(e => { console.error('Connexion anonyme refusée', e); resolve(null); });
-    }).then(u => u ? {u, fs} : null);
+    /* On attend que Firebase ait relu la session enregistrée sur cet appareil avant de créer
+       une connexion anonyme : sinon chaque visite pourrait créer un nouveau joueur. */
+    ready = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {}).then(() => new Promise(resolve => {
+      let asked = false;
+      auth.onAuthStateChanged(u => {
+        if (u){ resolve(u); return; }
+        if (!asked){ asked = true; auth.signInAnonymously().catch(e => { console.error('Connexion anonyme refusée', e); resolve(null); }); }
+      });
+    })).then(u => u ? {u, fs} : null);
+    /* Vraie identification : compte Google. Si le joueur jouait déjà en anonyme sur cet appareil,
+       son identité est rattachée au compte Google : il garde ses parties en cours. */
+    const MSG = {
+      'auth/popup-blocked': "Ton navigateur a bloqué la fenêtre de connexion. Autorise les fenêtres pour ce site, puis réessaie.",
+      'auth/popup-closed-by-user': "Connexion annulée.",
+      'auth/cancelled-popup-request': "Connexion annulée.",
+      'auth/operation-not-allowed': "La connexion Google n'est pas activée dans Firebase (Authentication → Méthode de connexion → Google).",
+      'auth/unauthorized-domain': "Ce site n'est pas dans les domaines autorisés de Firebase (Authentication → Paramètres → Domaines autorisés).",
+      'auth/web-storage-unsupported': "Ce navigateur bloque la connexion. Ouvre le jeu dans Chrome ou Safari.",
+      'auth/network-request-failed': "Pas de connexion Internet. Réessaie."
+    };
+    window.NM_AUTH = {
+      info(){ const u = auth.currentUser; return u ? {anonymous: u.isAnonymous, name: u.displayName || '', photo: u.photoURL || ''} : {anonymous: true, name: '', photo: ''}; },
+      async google(){
+        const prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({prompt: 'select_account'});
+        const u = auth.currentUser;
+        try {
+          if (u && u.isAnonymous) await u.linkWithPopup(prov); else await auth.signInWithPopup(prov);
+        } catch(e){
+          if ((e.code === 'auth/credential-already-in-use' || e.code === 'auth/email-already-in-use') && e.credential) await auth.signInWithCredential(e.credential);
+          else throw e;
+        }
+        location.reload();
+      },
+      async signOut(){ await auth.signOut(); location.reload(); },
+      explain(e){ const ua = navigator.userAgent || ''; if (/FBAN|FBAV|Instagram|WhatsApp|Line\/|wv\)/.test(ua)) return "La connexion Google ne marche pas dans le navigateur d'une appli. Ouvre le jeu dans Chrome ou Safari (menu ⋮ → Ouvrir dans le navigateur)."; return MSG[e && e.code] || ('Connexion impossible : ' + ((e && e.message) || 'erreur inconnue')); }
+    };
   }
   /* Firestore refuse les tableaux imbriqués : chaque document est stocké en JSON,
      avec updatedAt à part pour pouvoir trier la liste des parties. */
@@ -51,7 +83,7 @@
     use: async name => {
       const r = await ready; if (!r) return null;
       if (name === 'db') return makeDb(r.fs);
-      if (name === 'user') return {id: async () => r.u.uid, can: async () => true, name: async () => '', isOwner: async () => false, canEdit: async () => true};
+      if (name === 'user') return {id: async () => r.u.uid, can: async () => true, name: async () => (r.u.displayName || '').split(' ')[0], isOwner: async () => false, canEdit: async () => true};
       return null;
     }
   };
