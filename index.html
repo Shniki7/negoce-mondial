@@ -471,6 +471,60 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
   .btn.big{font-size:20px;padding:9px 16px}
   .panel{padding:12px 14px}
 }
+.rchip.pick{min-height:40px;padding:4px 12px 4px 6px}
+.toast{z-index:40}
+.bbar:empty{display:none!important}
+details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
+@media (max-width:900px){
+  .btn.sm{min-height:40px}
+  .seg button,.ltabs button{min-height:40px}
+  .menubtn{min-width:40px}
+  details.rules>summary{min-height:40px;display:flex;align-items:center}
+  .coach.inline{position:static;left:auto;right:auto;top:auto;bottom:auto;width:auto;margin:0 0 12px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+}
+@media (orientation:landscape) and (max-height:560px){
+  .coach.inline{position:static;width:auto;margin:0 0 10px}
+}
+#bview{position:relative}
+.mover{position:absolute;left:0;top:0;z-index:6;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 0 0 3px #fff,0 6px 14px rgba(0,0,0,.45);will-change:transform}
+.mover.hop{animation:hop .16s ease-out}
+@keyframes hop{50%{scale:1.25}}
+.pawns .pawn{width:clamp(12px,2.4cqi,24px);height:clamp(12px,2.4cqi,24px);font-size:clamp(7px,1.3cqi,12px)}
+.pawns .pawn.turn{animation:turnP 1.4s ease-in-out infinite;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 2px #fff,0 0 0 4px var(--gold)}
+@keyframes turnP{50%{scale:1.25}}
+.turnchip{cursor:pointer}
+.pl.tap{cursor:pointer}
+.pl.tap:hover,.pl.tap:focus-visible{background:var(--bg)}
+.pl.tap .nm::after{content:' ›';color:var(--muted)}
+.feed{padding:12px 14px}
+.feed .feedh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.feed ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.feed li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:start;font-size:13.5px;line-height:1.35;padding:5px 8px;border-radius:10px}
+.feed li i{font-style:normal;text-align:center}
+.feed li:not(:first-child){color:var(--muted)}
+.feed li.new{animation:feedIn .6s ease-out;background:color-mix(in srgb,var(--gold) 22%,transparent)}
+@keyframes feedIn{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.evc.pay .eh{background:#C2392B}
+.evc .pylist{display:flex;flex-direction:column;gap:6px;width:100%}
+.evc .pyl{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;font-size:14px;background:#F2EDE1;border-radius:10px;padding:7px 10px}
+.evc .pyl .note{color:#6A7180;font-size:12px}
+.evc.sheet{cursor:default;width:min(440px,100%);max-height:calc(100vh - 48px);overflow:auto;text-align:left}
+.evc.sheet .eh{display:flex;align-items:center;gap:10px;font-size:24px}
+.evc.sheet .eh span{font-size:inherit;line-height:1}
+.evc.sheet .eh .pawn{width:34px;height:34px;font-size:17px;background:#fff;color:var(--c);box-shadow:none}
+.evc.sheet .eb{align-items:stretch;gap:10px}
+.evc.sheet .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.evc.sheet .kpi{background:#F2EDE1;border-radius:10px;padding:8px}
+.evc.sheet .kpi .l{font-size:11px;font-weight:800;color:#6A7180;text-transform:uppercase}
+.evc.sheet .kpi .v{font-weight:900;font-size:16px}
+.shr{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid #E6DFCE}
+.shh{display:flex;justify-content:space-between;align-items:center}
+.shr .bar{position:relative;height:8px;background:#E6DFCE;border-radius:99px;overflow:hidden}
+.shr .bar span{position:absolute;inset:0 auto 0 0;background:#D99A16;border-radius:99px}
+.shr .bar i{position:absolute;top:0;bottom:0;width:2px;background:#fff}
+.shr .note{font-size:12px;color:#6A7180}
+@media (max-width:900px){ #sFeed{order:2} }
+@media (prefers-reduced-motion:reduce){.feed li.new,.pawns .pawn.turn,.mover.hop{animation:none}}
 </style>
 
 <div class="wrap" id="app">
@@ -549,6 +603,7 @@ const BASE = r => Math.max(50, Math.round(RES[r].v/RULE.div/50)*50);
 const titlePrice = (v,pct) => Math.max(100, Math.round(v*pct/100/50)*50);
 const tierRoy = (r,k) => Math.round(BASE(r)*TIER_MULT[k]/50)*50;
 const PCOLORS = ['--p1','--p2','--p3','--p4','--p5','--p6'];
+const pcol = c => PCOLORS.includes(c) ? c : '--p1';
 const BOT_NAMES = ['Atlas','Mercator','Magellan','Colomb','Polo','Cook'];
 const NEWS = [
   {t:"Prime à l'exportation", d:3000}, {t:'Redressement fiscal', d:-4000}, {t:"Subvention à l'innovation", d:2000},
@@ -573,7 +628,7 @@ function sanitizeRules(r){
   o.rec = num(r.rec, 0, 20000, D.rec); o.dbl = num(r.dbl, 0, 20000, D.dbl);
   o.jokerPrice = num(r.jokerPrice, 0, 100000, D.jokerPrice); o.jokers = num(r.jokers, 0, 60, D.jokers);
   o.maxBuy = num(r.maxBuy, 1, 20, D.maxBuy); o.div = num(r.div, 1, 100, D.div);
-  o.aucStart = num(r.aucStart, 0, 200, D.aucStart); o.aucSecs = num(r.aucSecs, 3, 60, D.aucSecs);
+  o.aucStart = num(r.aucStart, 0, 200, D.aucStart); o.aucSecs = num(r.aucSecs, 8, 60, D.aucSecs);
   if (Array.isArray(r.tiers) && r.tiers.length === 4){ const t = r.tiers.map((v,k) => num(v, 1, 100, D.tiers[k])); if (t.every((v,k) => !k || v > t[k-1])) o.tiers = t; }
   if (Array.isArray(r.mult) && r.mult.length === 4) o.mult = r.mult.map((v,k) => { v = +v; return Number.isFinite(v) && v >= 0 && v <= 1000 ? Math.round(v*100)/100 : D.mult[k]; });
   if (r.res && typeof r.res === 'object') Object.keys(RES).forEach(k => {
@@ -583,9 +638,9 @@ function sanitizeRules(r){
   });
   if (r.cells && typeof r.cells === 'object') Object.keys(r.cells).forEach(i => { const c = LAYOUT[i]; if (c && /^[pr]:/.test(c) && RES[r.cells[i]] && parseCell(c).r !== r.cells[i]) o.cells[i] = r.cells[i]; });
   if (r.names && typeof r.names === 'object'){ const nm = {}; ['classique','noir'].forEach(th => { const src = r.names[th]; if (!src || typeof src !== 'object') return; const d = {};
-    Object.keys(RES).forEach(k => { const x = src[k]; if (!x || typeof x !== 'object') return; const n = String(x.n || '').trim().slice(0, 24), i = String(x.i || '').trim().slice(0, 8), kk = KINDS[x.k] ? x.k : ''; if (n || i || kk) d[k] = Object.assign(n ? {n} : {}, i ? {i} : {}, kk ? {k:kk} : {}); });
+    Object.keys(RES).forEach(k => { const x = src[k]; if (!x || typeof x !== 'object') return; const n = String(x.n || '').replace(/[<>&"'`]/g, '').trim().slice(0, 24), i = String(x.i || '').replace(/[<>&"'`]/g, '').trim().slice(0, 8), kk = KINDS[x.k] ? x.k : ''; if (n || i || kk) d[k] = Object.assign(n ? {n} : {}, i ? {i} : {}, kk ? {k:kk} : {}); });
     if (Object.keys(d).length) nm[th] = d; }); if (Object.keys(nm).length) o.names = nm; }
-  if (Array.isArray(r.news) && r.news.length) o.news = r.news.slice(0, 40).map(x => ({t:String((x && x.t) || 'Carte').slice(0, 90), d:num(x && x.d, -200000, 200000, 0)}));
+  if (Array.isArray(r.news) && r.news.length) o.news = r.news.slice(0, 40).map(x => ({t:String((x && x.t) || 'Carte').replace(/[<>]/g, '').slice(0, 90), d:num(x && x.d, -200000, 200000, 0)}));
   return o;
 }
 let rulesKey = null;
@@ -642,6 +697,7 @@ function applyTheme(t){
   if (!RULE.customNews) NEWS.forEach((x,k) => { if (TH.news[k]) x.t = TH.news[k]; });
   Object.keys(SPEC).forEach(k => { const v = t === 'noir' && NOIR.spec[k] ? NOIR.spec[k] : SPEC_CLASSIC[k]; SPEC[k].l = v[0]; SPEC[k].i = v[1]; SPEC[k].d = v[2] || SPEC_CLASSIC[k][2]; });
   SPEC.joker.d = t === 'noir' ? `Engage un avocat pour ${fmt(RULE.jokerPrice)}. Il t'évite une fois la saisie.` : `Achète une carte Joker pour ${fmt(RULE.jokerPrice)}. Elle te dispense une fois de mettre des titres aux enchères.`;
+  if (t === 'noir') SPEC.ench.d = SPEC.ench.d.replace('la moitié de leur prix', RULE.aucStart + ' % de leur prix');
   SPEC.mondial.d = `Après un premier tour du monde : achat de ${RULE.maxBuy} titres au plus, partout dans le monde, parmi les richesses que tu possèdes déjà.`;
 }
 
@@ -656,12 +712,12 @@ const tName = id => `${RES[TITLES[id].r].n} ${TITLES[id].pct} % · ${ZONES[TITLE
 const owned = (s,pid) => Object.keys(s.owners).filter(id => s.owners[id] === pid);
 const share = (s,pid,r) => RES_T[r].reduce((t,id) => t + (s.owners[id] === pid ? TITLES[id].pct : 0), 0);
 const countIn = (s,pid,r) => RES_T[r].filter(id => s.owners[id] === pid).length;
-const tierOf = sh => sh >= 90 ? 3 : sh >= 70 ? 2 : sh >= 50 ? 1 : sh >= 30 ? 0 : -1;
+const tierOf = sh => sh >= TIER_MIN[3] ? 3 : sh >= TIER_MIN[2] ? 2 : sh >= TIER_MIN[1] ? 1 : sh >= TIER_MIN[0] ? 0 : -1;
 const royalty = (s,pid,r) => { const t = tierOf(share(s,pid,r)); return t < 0 ? 0 : tierRoy(r,t); };
 const ownedRes = (s,pid) => Object.keys(RES).filter(r => countIn(s,pid,r) > 0);
 const inAuction = (s,id) => !!(s.auction && s.auction.lots.some(l => l.includes(id)));
 function worth(s,p){ return p.cash + owned(s,p.id).reduce((t,id) => t + TITLES[id].price, 0); }
-function log(s,msg){ s.log.push(msg); if (s.log.length > 90) s.log.splice(0, s.log.length-90); }
+function log(s,msg){ s.logN = (s.logN || s.log.length) + 1; s.log.push(msg); if (s.log.length > 90) s.log.splice(0, s.log.length-90); }
 function gain(s,p,amt,why){ if (amt <= 0 || p.out) return; p.cash += amt; log(s, `${p.name} reçoit ${fmt(amt)} (${why})`); }
 
 function charge(s,p,amt,to,why){
@@ -705,15 +761,23 @@ function nextTurn(s){
     if (p.skip){ p.skip = false; log(s, `${SPEC.douane.l} : ${p.name} passe son tour`); continue; }
     break;
   }
-  s.phase = 'roll';
+  s.phase = 'roll'; s.turnAt = Date.now();
 }
+/* Royalties : chaque paiement est aussi noté dans s.pay pour que tous les écrans l'affichent en carte. */
 function payRoyalties(s,p,r){
+  const items = [], ev = {seq:((s.pay && s.pay.seq) || 0) + 1, by:p.id, pos:p.pos, r, items, broke:false};
+  let ok = true;
   for (const q of alive(s)){
     if (q.id === p.id) continue;
-    const amt = royalty(s,q.id,r);
-    if (amt > 0 && !charge(s,p,amt,q,`royalties ${RES[r].n}, ${share(s,q.id,r)} %`)) return false;
+    const amt = royalty(s,q.id,r), sh = share(s,q.id,r);
+    if (amt <= 0) continue;
+    const before = p.cash;
+    const paid = charge(s,p,amt,q,`royalties ${RES[r].n}, ${sh} %`);
+    items.push({to:q.id, amt: paid ? amt : before, sh});
+    if (!paid){ ev.broke = true; ok = false; break; }
   }
-  return true;
+  if (items.length) s.pay = ev;
+  return ok;
 }
 function eligible(s,p){
   const b = s.buy; if (!b) return [];
@@ -766,9 +830,10 @@ function land(s,p){
 function startLot(s){
   const a = s.auction, lot = a.lots[a.i];
   a.start = Math.max(100, Math.round(lot.reduce((t,id) => t + TITLES[id].price, 0)*RULE.aucStart/100/100)*100);
-  a.price = a.start; a.bidder = null; a.endsAt = Date.now() + (RULE.aucSecs + 5)*1000; a.seq = (a.seq||0) + 1;
+  a.price = a.start; a.bidder = null; a.dur = RULE.aucSecs + 5; a.tick = (a.tick||0) + 1; a.seq = (a.seq||0) + 1;
 }
 function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const tradeLocked = s => s.phase === 'pick' || s.phase === 'auction';
 function validOffer(s,o){
   const f = byId(s,o.from), t = byId(s,o.to);
   if (!f || !t || f.out || t.out || f.id === t.id) return false;
@@ -777,8 +842,13 @@ function validOffer(s,o){
   return f.cash >= o.cg && t.cash >= o.ct;
 }
 
+/* Présence : chaque action d'un joueur met à jour son « vu à », un battement le rafraîchit. */
+const SKIP_MS = 90000, RECLAIM_MS = 300000;
+const idle = (s,p,ms) => !p.bot && Date.now() - (p.seen || s.startedAt || s.createdAt || 0) > ms;
+const absent = (s,p) => idle(s,p,SKIP_MS) && Date.now() - (s.turnAt || 0) > SKIP_MS;
 const ACT = {
   join(s,who,name){
+    name = String(name || '').replace(/[<>]/g, '').trim().slice(0, 16);
     if (s.status !== 'lobby' || byId(s,who) || s.players.length >= 6 || !name) return false;
     if (s.players.some(p => p.name.toLowerCase() === String(name).toLowerCase())) return false;
     const used = s.players.map(p => p.color);
@@ -788,7 +858,7 @@ const ACT = {
   addBot(s,who){
     if (s.status !== 'lobby' || s.host !== who || s.players.length >= 6) return false;
     const used = s.players.map(p => p.color), names = s.players.map(p => p.name);
-    const nm = (BOT_NAMES.find(b => !names.includes(b)) || 'Ordi') ;
+    const low = names.map(n => n.toLowerCase()), nm = BOT_NAMES.find(b => !low.includes(b.toLowerCase())) || ('Ordi ' + (s.players.length + 1));
     s.players.push({id:'bot-' + Date.now().toString(36) + rnd(1e6), name:nm, bot:true, color:PCOLORS.find(c => !used.includes(c)), cash:0, pos:0});
     log(s, `${nm} (ordinateur) s'installe à la table`);
   },
@@ -810,8 +880,8 @@ const ACT = {
     const cash = START[s.players.length];
     shuffle(s.players);
     s.players.forEach(p => { p.cash = cash; p.pos = 0; p.laps = 0; p.out = false; p.skip = false; p.jokers = 0; });
-    Object.assign(s, {status:'playing', turn:0, round:1, phase:'roll', owners:{}, buy:null, pick:null, auction:null, offer:null, jokerOffer:false,
-      deck: shuffle(NEWS.map((_,i) => i)), deckPos:0, jokersLeft:RULE.jokers, card:null, dice:null, bankrupts:0, winner:null, startCash:cash});
+    Object.assign(s, {status:'playing', startedAt:Date.now(), turn:0, round:1, phase:'roll', owners:{}, buy:null, pick:null, auction:null, offer:null, jokerOffer:false,
+      deck: shuffle(NEWS.map((_,i) => i)), deckPos:0, turnAt:Date.now(), jokersLeft:RULE.jokers, card:null, dice:null, bankrupts:0, winner:null, startCash:cash});
     if (s.options.mode === 'chrono') s.endsAt = Date.now() + s.options.minutes*60000;
     log(s, `La partie commence avec ${fmt(cash)} chacun. ${s.players[0].name} ouvre le jeu.`);
     if (s.options.mode === 'rapide'){
@@ -874,7 +944,9 @@ const ACT = {
   },
   auctionStart(s,who,ids){
     if (!isTurn(s,who,'pick') || !Array.isArray(ids)) return false;
-    const p = cur(s);
+    const p = cur(s), have = owned(s,p.id).length;
+    if (!have){ s.pick = null; s.phase = 'act'; log(s, `${p.name} n'a plus de titre à mettre aux enchères`); return; }
+    s.pick.need = Math.min(s.pick.need, have);
     let sel = [...new Set(ids)].filter(id => s.owners[id] === p.id);
     Object.keys(RES).forEach(r => { if (countIn(s,p.id,r) >= 4 && sel.some(id => TITLES[id].r === r)) RES_T[r].forEach(id => { if (s.owners[id] === p.id && !sel.includes(id)) sel.push(id); }); });
     if (sel.length < s.pick.need) return false;
@@ -888,14 +960,16 @@ const ACT = {
   bid(s,who,amt){
     const a = s.auction; if (s.status !== 'playing' || s.phase !== 'auction' || !a) return false;
     const p = byId(s,who); amt = Math.round(+amt);
-    if (!p || p.out || who === a.seller || Date.now() > a.endsAt + 1500) return false;
+    if (!p || p.out || who === a.seller) return false;
     const min = a.bidder ? a.price + 100 : a.start;
     if (!(amt >= min) || p.cash < amt) return false;
-    a.price = amt; a.bidder = who; a.endsAt = Date.now() + RULE.aucSecs*1000;
+    a.price = amt; a.bidder = who; a.dur = RULE.aucSecs; a.tick = (a.tick||0) + 1;
     log(s, `${p.name} enchérit à ${fmt(amt)}`);
   },
-  resolveLot(s){
-    const a = s.auction; if (s.status !== 'playing' || s.phase !== 'auction' || !a || Date.now() < a.endsAt) return false;
+  /* Chaque écran compte le temps lui-même depuis la dernière offre : la vente n'est conclue
+     que si personne n'a enchéri entre-temps (même numéro d'offre). */
+  resolveLot(s,who,tick){
+    const a = s.auction; if (s.status !== 'playing' || s.phase !== 'auction' || !a || tick !== a.tick) return false;
     const lot = a.lots[a.i], seller = byId(s,a.seller), b = a.bidder ? byId(s,a.bidder) : null;
     const still = lot.filter(id => s.owners[id] === a.seller);
     if (b && !b.out && b.cash >= a.price && still.length){
@@ -910,21 +984,21 @@ const ACT = {
     else { s.auction = null; s.phase = 'act'; }
   },
   counter(s,who,o){
-    const old = s.offer; if (s.status !== 'playing' || !old || old.to !== who || !o) return false;
+    const old = s.offer; if (s.status !== 'playing' || tradeLocked(s) || !old || old.to !== who || !o) return false;
     const off = {from:who, to:old.from, give:[...new Set(o.give||[])], take:[...new Set(o.take||[])], cg:Math.max(0,Math.round(+o.cg||0)), ct:Math.max(0,Math.round(+o.ct||0)), round:(old.round||1) + 1};
     if (!off.give.length && !off.take.length && !off.cg && !off.ct) return false;
     if (!validOffer(s,off)) return false;
     s.offer = off; log(s, `${byId(s,who).name} fait une contre-proposition à ${byId(s,off.to).name}`);
   },
   propose(s,who,o){
-    if (s.status !== 'playing' || s.offer || !o) return false;
+    if (s.status !== 'playing' || tradeLocked(s) || s.offer || !o) return false;
     const off = {from:who, to:o.to, give:[...new Set(o.give||[])], take:[...new Set(o.take||[])], cg:Math.max(0,Math.round(+o.cg||0)), ct:Math.max(0,Math.round(+o.ct||0))};
     if (!off.give.length && !off.take.length && !off.cg && !off.ct) return false;
     if (!validOffer(s,off)) return false;
     s.offer = off; log(s, `${byId(s,who).name} propose une transaction à ${byId(s,off.to).name}`);
   },
   accept(s,who){
-    const o = s.offer; if (!o || o.to !== who) return false;
+    const o = s.offer; if (!o || o.to !== who || tradeLocked(s)) return false;
     s.offer = null;
     if (!validOffer(s,o)){ log(s, "La transaction n'est plus possible : les titres ou les fonds ont changé"); return; }
     const f = byId(s,o.from), t = byId(s,o.to);
@@ -940,14 +1014,15 @@ const ACT = {
   },
   quit(s,who){
     const p = byId(s,who); if (s.status !== 'playing' || !p || p.out) return false;
-    const wasTurn = cur(s).id === p.id && s.phase !== 'auction';
+    const wasTurn = cur(s).id === p.id;
     if (s.auction && s.auction.seller === p.id){ s.auction = null; s.phase = 'act'; }
     bankrupt(s,p,'abandonne la partie');
     if (wasTurn && s.status === 'playing') nextTurn(s);
   },
   skip(s,who){
-    const p = cur(s); if (s.status !== 'playing' || s.host !== who || p.id === who || p.bot || s.phase === 'auction') return false;
-    log(s, `L'hôte passe le tour de ${p.name}`);
+    const p = cur(s), me_ = byId(s,who); if (s.status !== 'playing' || !me_ || me_.bot || p.id === who || p.bot || s.phase === 'auction') return false;
+    if (s.host !== who && !absent(s,p)) return false;
+    log(s, `${me_.name} passe le tour de ${p.name}, absent`);
     if (s.phase === 'buy' && s.buy && s.buy.res) payRoyalties(s,p,s.buy.res);
     if (s.status === 'playing') nextTurn(s);
   },
@@ -958,9 +1033,10 @@ const ACT = {
     log(s, `L'hôte choisit : thème ${s.options.theme === 'noir' ? 'Marché noir' : 'Classique'}, règles ${s.options.rulesName ? '« ' + s.options.rulesName + ' »' : 'officielles'}`);
   },
   /* Reprendre sa place depuis un autre appareil ou navigateur : la place change d'identifiant, tout le reste suit. */
-  reclaim(s,who,pid){
-    const p = byId(s,pid);
+  reclaim(s,who,arg){
+    const pid = arg && typeof arg === 'object' ? arg.pid : arg, mine = !!(arg && arg.prev), p = byId(s,pid);
     if (!p || p.bot || p.id === who || byId(s,who) || s.status === 'closed') return false;
+    if (!mine && !idle(s,p,RECLAIM_MS)) return false;
     const sw = v => v === pid ? who : v;
     p.id = who; s.host = sw(s.host); s.winner = sw(s.winner);
     Object.keys(s.owners || {}).forEach(k => { s.owners[k] = sw(s.owners[k]); });
@@ -971,6 +1047,7 @@ const ACT = {
     (s.chat || []).forEach(m => { m.by = sw(m.by); });
     log(s, `${p.name} a repris sa place depuis un autre appareil`);
   },
+  ping(s,who){ const p = byId(s,who); if (!p || s.status === 'closed') return false; },
   say(s,who,text){
     const p = byId(s,who), t = String(text || '').trim().slice(0, 200);
     if (!p || !t) return false;
@@ -1018,7 +1095,7 @@ function botWantsBid(s,bot){
   return next <= val && bot.cash - next >= botReserve(s) ? next : 0;
 }
 function botAnswer(s){
-  const o = s.offer; if (!o) return false;
+  const o = s.offer; if (!o || tradeLocked(s)) return false;
   const bot = byId(s,o.to); if (!bot || !bot.bot) return false;
   if (!validOffer(s,o)) return ACT.refuse(s,bot.id);
   const val = (r,pid) => RES_T[r].reduce((t,id) => t + (s.owners[id] === pid ? TITLES[id].price : 0), 0);
@@ -1037,6 +1114,7 @@ function botAnswer(s){
 
 /* =================== SYNCHRONISATION =================== */
 const app = document.getElementById('app'), toastEl = document.getElementById('toast');
+const STANDALONE = !!window.FIREBASE_CONFIG;
 let db = null, userCap = null, canWrite = true;
 const me = {id:null, name:''};
 let games = [], gid = null, game = null, unsubGame = null, busy = false, sel = null;
@@ -1044,6 +1122,7 @@ let lastRoll = null, lastLand = null, confirmKey = null, toastTimer = null, botT
 let picks = [], draft = {open:false, to:null, give:[], take:[], cg:0, ct:0}, bidAmt = null;
 let seenChat = null, lastToastChat = 0;
 let lastCard = null, evtTimer = null, cart = [], cartKey = null;
+let lastPay = null, posMem = {}, moving = false, moveBack = null, moveQ = [], feedN = null, feedMark = {n:0, until:0}, sheetPid = null;
 let pendingCode = null, hostOpts = false, menuOpen = false, selUser = false, edMoreOpen = null;
 let tab = 'jeu', ledger = 'titres', pfView = 'res', mkFilter = 'all', mkOpen = null;
 const store = {
@@ -1054,8 +1133,11 @@ const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function toast(msg){ toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.hidden = true, 3800); }
 
+function stamp(s){ s.seq = (s.seq||0) + 1; s.updatedAt = Date.now(); const p = byId(s, me.id); if (p) p.seen = Date.now(); }
 async function mutate(fn, arg, silent){
-  if (busy || !gid) return;
+  if (!gid) return;
+  for (let i = 0; busy && i < 30; i++) await sleep(100);
+  if (busy){ if (!silent) toast('Une action est encore en cours, réessaie.'); return; }
   busy = true; if (!silent) render();
   const ref = db.doc('games/' + gid);
   try {
@@ -1063,10 +1145,11 @@ async function mutate(fn, arg, silent){
       let why = null;
       const out = await ref.tx(d => {
         if (!d){ why = 'gone'; return null; }
-        const s = JSON.parse(JSON.stringify(d));
+        if (!validGame(d)){ why = 'gone'; return null; }
+        const s = cleanGame(JSON.parse(JSON.stringify(d)));
         applyRules(s.rules); applyTheme(s.options && s.options.theme);
         if (fn(s, me.id, arg) === false){ why = 'refused'; return null; }
-        why = null; s.seq = (s.seq||0) + 1; s.updatedAt = Date.now(); return s;
+        why = null; stamp(s); return s;
       });
       if (why === 'gone') toast("Cette partie n'existe plus.");
       else if (why === 'refused'){ if (!silent) toast('Action impossible pour le moment.'); }
@@ -1083,13 +1166,15 @@ async function mutate(fn, arg, silent){
     const snap = await ref.get();
     if (!snap.exists){ toast("Cette partie n'existe plus."); return; }
     const s = JSON.parse(JSON.stringify(snap.data()));
+    if (!validGame(s)){ toast("Cette partie n'existe plus."); return; }
+    cleanGame(s);
     applyRules(s.rules); applyTheme(s.options && s.options.theme);
     if (fn(s, me.id, arg) === false){ if (!silent) toast('Action impossible pour le moment.'); return; }
-    s.seq = (s.seq||0) + 1; s.updatedAt = Date.now();
+    stamp(s);
     game = s;
     await ref.set(s);
   } catch(e){
-    if (e && e.code === 'invalid_argument'){ canWrite = false; toast("Tu n'as pas le droit de jouer sur cette page. Demande au propriétaire de t'inviter comme éditeur."); }
+    if (e && e.code === 'invalid_argument'){ if (STANDALONE) toast("Firebase a refusé cette action (règles de sécurité Firestore). Recharge la page."); else { canWrite = false; toast("Tu n'as pas le droit de jouer sur cette page. Demande au propriétaire de t'inviter comme éditeur."); } }
     else toast('La connexion a échoué. Réessaie.');
   } finally { busy = false; render(); }
 }
@@ -1097,14 +1182,19 @@ function openGame(id){
   seenChat = null;
   if (!id){ try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} }
   if (unsubGame){ unsubGame(); unsubGame = null; }
-  gid = id; game = null; sel = null; confirmKey = null; lastRoll = null; lastLand = null; lastCard = null; followKey = null; picks = []; bidAmt = null;
+  gid = id; game = null; sel = null; lastStatus = null; lastPay = null; posMem = {}; feedN = null; sheetPid = null; confirmKey = null; lastRoll = null; lastLand = null; lastCard = null; followKey = null; picks = []; bidAmt = null;
   draft = {open:false, to:null, give:[], take:[], cg:0, ct:0};
   store.set('nm.game', id);
   render();
-  if (!id) return;
+  if (!id){ listWatch(true); return; }
+  listWatch(false);
+  let had = false;
   unsubGame = db.doc('games/' + id).onSnapshot(snap => {
+    if (gid !== id) return;
     const d = snap.exists ? snap.data() : null;
-    if (!d || d.v !== 3){ game = null; gid = null; store.set('nm.game', null); render(); return; }
+    if (!validGame(d)){ if (had) toast("Cette partie a été supprimée par son hôte."); game = null; gid = null; store.set('nm.game', null); listWatch(true); render(); return; }
+    had = true; cleanGame(d);
+    if (!byId(d, me.id)) autoReclaim(d);
     game = d; render();
   }, () => toast('La connexion à la partie a été perdue. Recharge la page.'));
 }
@@ -1116,13 +1206,43 @@ async function createGame(){
   const rid = document.getElementById('rulesSel') ? document.getElementById('rulesSel').value : '';
   const preset = rid ? presets.find(p => p.id === rid) : null;
   const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-  const code = Math.random().toString(36).slice(2,6).toUpperCase();
-  const s = {v:3, code, status:'lobby', host:me.id, createdAt:Date.now(), updatedAt:Date.now(), seq:1, options:{mode, minutes, theme, rulesName: preset ? preset.name : null}, rules: preset ? sanitizeRules(preset.rules) : null,
+  const code = newCode();
+  const s = {v:3, code, by:me.id, status:'lobby', host:me.id, createdAt:Date.now(), updatedAt:Date.now(), seq:1, options:{mode, minutes, theme, rulesName: preset ? preset.name : null}, rules: preset ? sanitizeRules(preset.rules) : null,
     players:[{id:me.id, name, color:'--p1', cash:0, pos:0}], owners:{}, log:[`${name} ouvre la table ${code}${preset ? ' avec les règles « ' + preset.name + ' »' : ''}`]};
   busy = true; renderLobby();
   try { await db.doc('games/' + id).set(s); openGame(id); }
   catch(e){ toast(e && e.code === 'invalid_argument' ? "Tu n'as pas le droit de créer une partie sur cette page." : "La partie n'a pas pu être créée. Réessaie."); }
   finally { busy = false; render(); }
+}
+/* Codes sans caractères ambigus (pas de O/0 ni I/1/L). */
+function newCode(){ const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 4; i++) c += A[rnd(A.length)]; return c; }
+/* Un document de partie vient du réseau : les nombres sont forcés en nombres et les titres inconnus écartés,
+   pour qu'une partie modifiée à la main ne puisse ni casser l'affichage ni y glisser du HTML. */
+const isTid = id => { if (typeof id !== 'string') return false; const k = id.indexOf('-'); return k > 0 && !!RES[id.slice(0,k)] && !!ZONES[id.slice(k+1)]; };
+function cleanGame(d){
+  const N = v => Number.isFinite(+v) ? +v : 0;
+  ['round','turn','seq','updatedAt','createdAt','startedAt','turnAt','endsAt','rollSeq','landSeq','deckPos','jokersLeft','bankrupts','startCash'].forEach(k => { if (k in d) d[k] = N(d[k]); });
+  d.players.forEach(p => { ['cash','pos','laps','jokers','seen'].forEach(k => { if (k in p) p[k] = N(p[k]); }); p.pos = Math.max(0, Math.min(LAYOUT.length - 1, Math.round(p.pos || 0))); p.color = pcol(p.color); });
+  if (d.turn >= d.players.length || d.turn < 0) d.turn = 0;
+  if (d.owners && typeof d.owners === 'object') Object.keys(d.owners).forEach(k => { if (!isTid(k)) delete d.owners[k]; }); else d.owners = {};
+  if (Array.isArray(d.dice)) d.dice = d.dice.map(v => Math.max(0, Math.min(6, Math.round(N(v)))));
+  const a = d.auction; if (a){ ['i','start','price','dur','tick'].forEach(k => { a[k] = N(a[k]); }); a.lots = Array.isArray(a.lots) ? a.lots.map(l => (Array.isArray(l) ? l : []).filter(id => isTid(id))) : []; if (!a.lots[a.i]) d.auction = null; }
+  if (d.pick) d.pick.need = Math.max(1, N(d.pick.need));
+  if (d.buy){ d.buy.left = N(d.buy.left); d.buy.n = N(d.buy.n); }
+  if (d.offer){ d.offer.cg = N(d.offer.cg); d.offer.ct = N(d.offer.ct); d.offer.round = N(d.offer.round) || 1; ['give','take'].forEach(k => { d.offer[k] = (Array.isArray(d.offer[k]) ? d.offer[k] : []).filter(r => RES[r]); }); }
+  const o = d.options; o.mode = ['classic','rapide','chrono'].includes(o.mode) ? o.mode : 'classic'; o.theme = o.theme === 'noir' ? 'noir' : 'classique';
+  o.minutes = Math.max(5, Math.min(240, Math.round(N(o.minutes)) || 45)); o.practice = !!o.practice; o.rulesName = o.rulesName ? String(o.rulesName).replace(/[<>]/g, '').slice(0, 40) : null;
+  if (!Array.isArray(d.log)) d.log = [];
+  return d;
+}
+function validGame(d){ return !!(d && d.v === 3 && Array.isArray(d.players) && d.options && typeof d.options === 'object' && typeof d.code === 'string' && d.players.every(p => p && typeof p.id === 'string' && typeof p.name === 'string')); }
+/* Identités précédentes de cet appareil (avant connexion ou déconnexion Google) : la place est reprise d'office. */
+function prevIds(){ try { return JSON.parse(store.get('nm.prev') || '[]').filter(x => typeof x === 'string'); } catch(e){ return []; } }
+let reclaimTried = null;
+function autoReclaim(d){
+  if (!canWrite || !me.id || reclaimTried === d.code) return;
+  const p = d.players.find(x => !x.bot && prevIds().includes(x.id)); if (!p) return;
+  reclaimTried = d.code; setTimeout(() => mutate(ACT.reclaim, {pid:p.id, prev:true}, true), 50);
 }
 function readPseudo(){
   const el = document.getElementById('pseudo');
@@ -1132,13 +1252,26 @@ function readPseudo(){
 }
 
 /* L'hôte fait jouer les ordinateurs ; chacun peut clore une enchère expirée. */
+/* Le pilote des ordinateurs : l'hôte s'il est là, sinon le premier joueur présent. */
+function driverId(s){
+  const fresh = s.players.filter(p => !p.bot && (p.id === me.id || Date.now() - (p.seen || 0) < 75000));
+  if (fresh.some(p => p.id === s.host)) return s.host;
+  return fresh.length ? fresh[0].id : s.host;
+}
+let aucClock = {key:null, end:0};
+function aucEnd(a){
+  const k = gid + '|' + (a.tick || 0) + '|' + (a.i || 0);
+  if (aucClock.key !== k) aucClock = {key:k, end: Date.now() + (a.dur || RULE.aucSecs)*1000};
+  return aucClock.end;
+}
 function drive(){
   if (!game || game.status !== 'playing' || busy || botTimer || !canWrite || !me.id) return;
-  const s = game, isHost = s.host === me.id, a = s.auction;
+  const s = game, a = s.auction, isHost = driverId(s) === me.id || Date.now() - (s.updatedAt || 0) > 20000;
+  if (!byId(s, me.id) && !isHost) return;
   if (s.phase === 'auction' && a){
-    const late = Date.now() - a.endsAt, seller = byId(s,a.seller);
+    const late = Date.now() - aucEnd(a), seller = byId(s,a.seller), tick = a.tick;
     const resolver = (a.seller === me.id) || (isHost && (!seller || seller.bot || seller.out)) || late > 4000;
-    if (late >= 0 && resolver){ botTimer = setTimeout(() => { botTimer = null; mutate(st => ACT.resolveLot(st), null, true); }, 300 + rnd(400)); return; }
+    if (late >= 0 && resolver){ botTimer = setTimeout(() => { botTimer = null; mutate((st,w) => ACT.resolveLot(st,w,tick), null, true); }, 300 + rnd(400)); return; }
     if (isHost && late < -1500){
       const bots = alive(s).filter(p => p.bot && botWantsBid(s,p));
       if (bots.length && Math.random() < 0.35){ const b = bots[rnd(bots.length)]; botTimer = setTimeout(() => { botTimer = null; mutate(st => { const v = botWantsBid(st, byId(st,b.id)); return v ? ACT.bid(st,b.id,v) : false; }, null, true); }, 900 + rnd(1800)); }
@@ -1147,13 +1280,18 @@ function drive(){
   }
   if (!isHost) return;
   const o = s.offer;
-  if (o && byId(s,o.to) && byId(s,o.to).bot){ botTimer = setTimeout(() => { botTimer = null; mutate(st => botAnswer(st), null, true); }, 1300); return; }
-  if (cur(s).bot){ botTimer = setTimeout(() => { botTimer = null; mutate(st => botStep(st), null, true); }, 900); }
+  if (o && !tradeLocked(s) && byId(s,o.to) && byId(s,o.to).bot){ botTimer = setTimeout(() => { botTimer = null; mutate(st => botAnswer(st), null, true); }, 1500); return; }
+  if (cur(s).bot){ botTimer = setTimeout(() => { botTimer = null; mutate(st => botStep(st), null, true); }, 1200 + rnd(300)); }
 }
+let lastSkip = false;
+function canSkip(s){ if (!s || s.status !== 'playing' || s.phase === 'auction') return false; const c = cur(s), m = byId(s, me.id); return !!(m && !m.out && !c.bot && c.id !== me.id && (s.host === me.id || absent(s,c))); }
+/* Battement de présence toutes les 45 s tant que la partie est ouverte et visible. */
+setInterval(() => { if (game && gid && byId(game, me.id) && game.status !== 'closed' && !busy && document.visibilityState !== 'hidden') mutate(ACT.ping, null, true); }, 60000);
 setInterval(() => {
   if (!game) return;
   const el = document.getElementById('aCount');
-  if (el && game.auction){ const t = Math.max(0, Math.ceil((game.auction.endsAt - Date.now())/1000)); el.textContent = t > 0 ? `${t} s` : 'Adjugé…'; }
+  if (el && game.auction){ const t = Math.max(0, Math.ceil((aucEnd(game.auction) - Date.now())/1000)); el.textContent = t > 0 ? `${t} s` : 'Adjugé…'; }
+  const sk = canSkip(game); if (sk !== lastSkip){ lastSkip = sk; render(); }
   const ch = document.getElementById('chrono');
   if (ch && game.endsAt && game.status === 'playing'){ const t = Math.max(0, game.endsAt - Date.now()); ch.textContent = `${Math.floor(t/60000)}:${String(Math.floor(t/1000)%60).padStart(2,'0')}`; }
   drive();
@@ -1183,13 +1321,13 @@ function drawMap(canvas, s){
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--c-' + Z.g).trim() || '#888';
     ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
     holders.slice(0,4).forEach((p,k) => {
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(p.color).trim();
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(pcol(p.color)).trim();
       const ang = -Math.PI/2 + k*Math.PI/2; ctx.beginPath(); ctx.arc(x + Math.cos(ang)*r*1.15, y + Math.sin(ang)*r*1.15, r*.42, 0, Math.PI*2); ctx.fill();
     });
   });
 }
 function rchip(r){ return `<span class="rchip" style="--k:var(--k-${RES[r].k})"><i>${RES[r].i}</i>${esc(RES[r].n)}</span>`; }
-function pawn(p){ return `<span class="pawn${p.id===me.id?' me':''}" style="--c:var(${p.color})" title="${esc(p.name)}">${esc(p.name.slice(0,1).toUpperCase())}</span>`; }
+function pawn(p, turn){ return `<span class="pawn${p.id===me.id?' me':''}${turn ? ' turn' : ''}" data-pid="${esc(p.id)}" style="--c:var(${pcol(p.color)})" title="${esc(p.name)}">${esc(p.name.slice(0,1).toUpperCase())}</span>`; }
 const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function die(v,red){ let h = ''; for (let i=0;i<9;i++) h += `<i class="${(PIPS[v]||[]).includes(i)?'on':''}"></i>`; return `<div class="die${red?' red':''}" role="img" aria-label="${red?'dé rouge ':''}${v||''}">${h}</div>`; }
 function gridPos(i){ if (i<=12) return [13,13-i]; if (i<=24) return [13-(i-12),1]; if (i<=36) return [1,1+(i-24)]; return [1+(i-36),13]; }
@@ -1214,13 +1352,14 @@ function cellLabel(i){
 }
 function cellHTML(s,i,landed){
   const c = CELLS[i], [r,col] = gridPos(i), corner = i % 12 === 0;
-  const pawns = s.players.filter(p => !p.out && p.pos === i).map(pawn).join('');
+  const cid = s.status === 'playing' ? cur(s).id : null;
+  const pawns = s.players.filter(p => !p.out && p.pos === i).map(p => pawn(p, p.id === cid)).join('');
   const cls = ['cell']; if (sel === i) cls.push('sel'); if (landed) cls.push('landed');
   let inner = '';
   if (c.t === 'pays' || c.t === 'rec'){
     const holders = alive(s).filter(p => tierOf(share(s,p.id,c.r)) >= 0);
-    const band = c.t === 'pays' ? `<span class="band" style="--g:var(--c-${ZONES[c.z].g})">${esc(ZONES[c.z].s)}</span>` : `<span class="band" style="--g:var(--s-rec)">+0,5 M€ × dés</span>`;
-    inner = `${band}<span class="ico">${RES[c.r].i}</span><span class="rn">${esc(RES[c.r].n)}</span><span class="owners">${holders.map(p => `<b style="--c:var(${p.color})"></b>`).join('')}</span>`;
+    const band = c.t === 'pays' ? `<span class="band" style="--g:var(--c-${ZONES[c.z].g})">${esc(ZONES[c.z].s)}</span>` : `<span class="band" style="--g:var(--s-rec)">+${esc(fmt(RULE.rec))} × dés</span>`;
+    inner = `${band}<span class="ico">${RES[c.r].i}</span><span class="rn">${esc(RES[c.r].n)}</span><span class="owners">${holders.map(p => `<b style="--c:var(${pcol(p.color)})"></b>`).join('')}</span>`;
   } else if (c.t === 'cont'){
     cls.push('special'); inner = `<span class="ico">${TH.contIco}</span><span class="sl">${TH.contShort}</span><span class="ss">${CONT[c.c].n}</span>`;
     return `<button class="${cls.join(' ')}" style="grid-area:${r}/${col};--sc:var(--c-${c.c})" data-act="sel" data-id="${i}" aria-label="${esc(cellLabel(i))}">${inner}<span class="pawns">${pawns}</span></button>`;
@@ -1259,9 +1398,11 @@ function ago(t){ if (!t) return 'créée'; const m = Math.max(0, Math.round((Dat
 function reclaimHTML(s){
   const humans = s.players.filter(p => !p.bot && !p.out);
   if (!humans.length || !me.id) return '';
-  return `<div class="reclaim"><div class="label">Tu fais déjà partie de cette partie ?</div>
-    <p class="note">Si tu l'as rejointe depuis un autre téléphone ou un autre navigateur, le jeu ne te reconnaît pas ici. Touche ton nom pour reprendre ta place.</p>
-    <div class="row">${humans.map(p => `<button class="btn sm ${confirmKey === 'rc:' + p.id ? 'red' : 'ghost'}" data-act="reclaim" data-id="${esc(p.id)}">${pawn(p)} ${confirmKey === 'rc:' + p.id ? `Confirmer : je suis ${esc(p.name)}` : `C'est moi : ${esc(p.name)}`}</button>`).join('')}</div></div>`;
+  const open = !!(confirmKey && confirmKey.startsWith('rc:'));
+  return `<details class="reclaim"${open ? ' open' : ''}><summary class="label">Tu fais déjà partie de cette partie ?</summary>
+    <p class="note">Si tu l'as rejointe depuis un autre téléphone ou un autre navigateur, le jeu ne te reconnaît pas ici. Une place se reprend quand elle est inactive depuis ${RECLAIM_MS/60000} minutes : ferme d'abord le jeu sur l'autre appareil. Pour ne plus avoir ce souci, connecte-toi avec Google.</p>
+    <div class="row">${humans.map(p => { const ok = idle(s,p,RECLAIM_MS);
+      return `<button class="btn sm ${confirmKey === 'rc:' + p.id ? 'red' : 'ghost'}" data-act="reclaim" data-id="${esc(p.id)}" ${ok ? '' : 'disabled'}>${pawn(p)} ${!ok ? `${esc(p.name)} · actif` : confirmKey === 'rc:' + p.id ? `Confirmer : je suis ${esc(p.name)}` : `C'est moi : ${esc(p.name)}`}</button>`; }).join('')}</div></details>`;
 }
 function authInfo(){ try { return window.NM_AUTH && window.NM_AUTH.info ? window.NM_AUTH.info() : null; } catch(e){ return null; } }
 function acctHTML(){
@@ -1273,11 +1414,21 @@ function authItemHTML(){
   const a = authInfo(); if (!a) return '';
   return a.anonymous ? '<button data-act="login" role="menuitem">🔐 Se connecter avec Google</button>' : `<button data-act="logout" role="menuitem">👤 ${esc(a.name || 'Compte')} · se déconnecter</button>`;
 }
-function joinByCode(code){
-  const el = document.getElementById('joinCode');
+async function findByCode(code){
+  const g = games.find(x => x.code === code && x.status !== 'closed'); if (g) return g;
+  try { const c = db.collection('games');
+    if (c.where){ const snap = await c.where('code', '==', code).limit(5).get();
+      return snap.docs.map(d => Object.assign({_id: d.id}, d.data())).find(x => { try { return validGame(x) && !!cleanGame(x) && x.status !== 'closed'; } catch(e){ return false; } }) || null; } } catch(e){}
+  /* Sans recherche par code : on attend la liste des parties récentes. */
+  listWatch(true); for (let i = 0; i < 50 && !listLoaded; i++) await sleep(100);
+  return games.find(x => x.code === code && x.status !== 'closed') || null;
+}
+async function joinByCode(code){
+  const el = document.getElementById('joinCode'), ps = document.getElementById('pseudo');
   code = String(code || (el && el.value) || '').trim().toUpperCase();
   if (!code){ toast('Tape le code donné par ton pote.'); if (el) el.focus(); return; }
-  const g = games.find(x => x.code === code && x.status !== 'closed');
+  if (ps && ps.value.trim()){ me.name = ps.value.trim().slice(0,16); store.set('nm.pseudo', me.name); }
+  const g = await findByCode(code);
   if (!g){ toast(`Aucune partie avec le code ${code}. Vérifie-le avec celui qui l'a créée.`); return; }
   openGame(g._id);
 }
@@ -1331,19 +1482,19 @@ function renderLobby(){
   const rs = document.getElementById('rulesSel');
   if (rs){ const v = rs.value, html = '<option value="">Officielles</option>' + presets.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
     if (rs.dataset.k !== html){ rs.dataset.k = html; rs.innerHTML = html; rs.value = presets.some(p => p.id === v) ? v : ''; } }
-  const list = games.filter(g => g.v === 3 && !(g.options && g.options.practice && !g.players.some(p => p.id === me.id)) && g.status !== 'closed' && g.players && g.players.length && (g.status !== 'over' || Date.now() - (g.updatedAt||0) < 864e5));
+  const list = games.filter(g => validGame(g) && !(g.options && g.options.practice && !g.players.some(p => p.id === me.id)) && g.status !== 'closed' && g.players && g.players.length && (g.status !== 'over' || Date.now() - (g.updatedAt||0) < 864e5));
   const t = document.getElementById('tables');
   if (!list.length){ t.innerHTML = `<div class="empty">Aucune partie pour l'instant. Crée la première : elle s'affichera ici pour tous les joueurs.</div>`; return; }
   const modeName = {classic:'Classique', rapide:'Rapide', chrono:'Chrono'};
-  t.innerHTML = list.map(g => {
+  t.innerHTML = list.map(g => { try {
     const inIt = g.players.some(p => p.id === me.id), host = g.players.find(p => p.id === g.host);
-    const st = g.status === 'lobby' ? '<span class="pill open">En attente</span>' : g.status === 'playing' ? `<span class="pill live">Tour ${g.round}</span>` : '<span class="pill">Terminée</span>';
+    const st = g.status === 'lobby' ? '<span class="pill open">En attente</span>' : g.status === 'playing' ? `<span class="pill live">Tour ${Number(g.round) || 1}</span>` : '<span class="pill">Terminée</span>';
     const btn = g.status === 'lobby' && !inIt ? `<button class="btn sm" data-act="join" data-id="${esc(g._id)}" ${(!canWrite || g.players.length>=6 || busy)?'disabled':''}>${g.players.length>=6?'Complet':'Rejoindre'}</button>`
       : `<button class="btn sm ${inIt?'gold':'ghost'}" data-act="open" data-id="${esc(g._id)}">${inIt?'Reprendre':'Regarder'}</button>`;
     const del = g.host === me.id && canWrite ? `<button class="btn sm ${confirmKey === 'del:' + g._id ? 'red' : 'ghost'}" data-act="delGame" data-id="${esc(g._id)}" title="Supprimer cette partie">${confirmKey === 'del:' + g._id ? 'Confirmer' : '✕'}</button>` : '';
     return `<div class="tbl"><div><b>Partie ${esc(g.code)} · ${esc(host ? host.name : '—')}</b><div class="note">${ago(g.createdAt)} · ${modeName[g.options.mode]||''}${g.options.theme === 'noir' ? ' · Marché noir' : ''}${g.options.rulesName ? ' · règles « ' + esc(g.options.rulesName) + ' »' : ''} · ${g.players.length} joueur${g.players.length>1?'s':''}</div></div>
-      <div class="dots">${g.players.map(p => `<span class="dot" style="--c:var(${p.color})" title="${esc(p.name)}"></span>`).join('')}</div>${st}<div class="row">${btn}${del}</div></div>`;
-  }).join('');
+      <div class="dots">${g.players.map(p => `<span class="dot" style="--c:var(${pcol(p.color)})" title="${esc(p.name)}"></span>`).join('')}</div>${st}<div class="row">${btn}${del}</div></div>`;
+  } catch(e){ return ''; } }).join('');
 }
 
 function ensureGameSkeleton(){
@@ -1353,7 +1504,7 @@ function ensureGameSkeleton(){
   <main class="game" id="game" data-tab="jeu">
     <section class="board-wrap p-jeu"><div class="bctl" id="bctl"></div><div class="bview" id="bview"><div class="board" id="board"></div></div></section>
     <aside class="side" id="side" data-ledger="titres">
-      <div id="sAuction" class="p-jeu"></div><div id="sOffer" class="p-jeu"></div><div id="sAction" class="p-jeu"></div><div id="sDetail" class="p-jeu"></div>
+      <div id="sAuction" class="p-jeu"></div><div id="sOffer" class="p-jeu"></div><div id="sAction" class="p-jeu"></div><div id="sFeed" class="p-jeu"></div><div id="sDetail" class="p-jeu"></div>
       <nav class="ltabs" id="ltabs" aria-label="Tableaux"></nav>
       <div class="pane-l" id="pTitres"></div>
       <div class="pane-l" id="pMarche"></div>
@@ -1380,13 +1531,22 @@ function renderGame(){
   ensureGameSkeleton();
   const s = game, meP = byId(s, me.id), c = s.status === 'playing' ? cur(s) : null, myTurn = !!(c && c.id === me.id);
   if (zoomOn === null){ const z = store.get('nm.zoom'); zoomOn = z ? z === '1' : isPhone(); }
+  if (s.status !== lastStatus){ if (lastStatus !== null) { followKey = null; sel = null; } lastStatus = s.status; }
   document.getElementById('bview').classList.toggle('zoom', zoomOn);
   if (draft.counter && !(s.offer && s.offer.to === me.id)) draft = {open:false, to:null, give:[], take:[], cg:0, ct:0};
   if (sel === null) sel = meP && s.status === 'playing' ? meP.pos : 0;
   const rolling = s.rollSeq && lastRoll !== null && s.rollSeq !== lastRoll; lastRoll = s.rollSeq || 0;
   const landedNow = s.landSeq && lastLand !== null && s.landSeq !== lastLand; lastLand = s.landSeq || 0;
-  if (s.card && lastCard !== null && s.card.seq !== lastCard) showCard(s, s.card);
+  /* Le pion qui vient de bouger avance case par case ; les cartes s'affichent à son arrivée. */
+  let move = null;
+  if (landedNow && s.lastLand){ const mp = byId(s, s.lastLand.pid), from = posMem[s.lastLand.pid];
+    if (mp && from != null && from !== mp.pos) move = {p: mp, from, to: mp.pos}; }
+  s.players.forEach(p => { posMem[p.id] = p.pos; });
+  if (move) startMove(move);
+  if (s.card && lastCard !== null && s.card.seq !== lastCard){ const c = s.card; afterMove(() => showCard(game, c)); }
   lastCard = s.card ? s.card.seq : 0;
+  if (s.pay && lastPay !== null && s.pay.seq !== lastPay){ const ev = s.pay; afterMove(() => showPay(game, ev)); }
+  lastPay = s.pay ? s.pay.seq : 0;
   const modeName = {classic:'Classique', rapide:'Rapide', chrono:'Chrono'}[s.options.mode];
   setHTML('gHead', `<div class="logo">Négoce <span>Mondial</span><small>Partie ${esc(s.code)} · ${modeName}${THEME === 'noir' ? ' · Marché noir' : ''}${s.options.rulesName ? ' · Règles « ' + esc(s.options.rulesName) + ' »' : ''}${s.options.mode === 'chrono' && s.status === 'playing' ? ' · <span id="chrono" class="num"></span> restantes' : ''}</small></div>
     <div class="hdr-r">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}
@@ -1397,25 +1557,26 @@ function renderGame(){
         <button data-act="tutoReset" role="menuitem">🎓 Revoir le tutoriel</button>
         ${s.status === 'playing' && meP && !meP.out ? `<button class="danger" data-act="quit" role="menuitem">${confirmKey === 'quit' ? "⚠️ Confirmer l'abandon" : '🏳️ Abandonner la partie'}</button>` : ''}
       </div>` : ''}</div></div>`);
-  const roundTxt = s.status === 'lobby' ? "Salle d'attente" : s.status === 'over' ? 'Partie terminée' : `Tour ${s.round}`;
+  const roundTxt = s.status === 'lobby' ? "Salle d'attente" : s.status === 'over' ? 'Partie terminée' : `Tour ${Number(s.round) || 1}`;
   const center = `<div class="center">
     <div><div class="c-logo">Négoce <span>Mondial</span></div><div class="c-meta">Partie ${esc(s.code)} · ${roundTxt}</div></div>
     <div class="mapbox"><canvas id="bMap" aria-hidden="true"></canvas></div>
     <div class="c-row">
       <div class="dice${rolling ? ' rolling' : ''}">${die(s.dice ? s.dice[0] : 0, true)}${die(s.dice ? s.dice[1] : 0)}</div>
-      ${c ? `<div class="turnchip">${pawn(c)} ${myTurn ? 'À toi de jouer' : esc(c.name)}</div>` : ''}
+      ${c ? `<div class="turnchip" data-act="plOpen" data-id="${esc(c.id)}" role="button">${pawn(c)} ${myTurn ? 'À toi de jouer' : esc(c.name)}</div>` : ''}
     </div>
     ${s.card ? `<div class="newscard"><span class="k">${SPEC.actu.l}${byId(s,s.card.by) ? ' · ' + esc(byId(s,s.card.by).name) : ''}</span>${esc(s.card.text)}</div>` : ''}
   </div>`;
-  document.getElementById('board').innerHTML = CELLS.map((_,i) => cellHTML(s, i, landedNow && s.lastLand && s.lastLand.pos === i)).join('') + center;
+  document.getElementById('board').innerHTML = CELLS.map((_,i) => cellHTML(s, i, !moving && landedNow && s.lastLand && s.lastLand.pos === i)).join('') + center;
   drawMap(document.getElementById('bMap'), s);
   setHTML('bctl', `${zoomOn ? '<span class="note">Fais glisser le plateau, touche une case.</span>' : ''}${zoomOn && meP && !meP.out && s.status === 'playing' ? '<button class="btn sm ghost" data-act="center">📍 Mon pion</button>' : ''}<button class="btn sm ${zoomOn ? 'ghost' : 'gold'}" data-act="zoom">${zoomOn ? "🗺️ Vue d'ensemble" : '🔍 Zoomer'}</button>`);
   follow(s, meP, myTurn, false);
   setHTML('sAuction', auctionHTML(s, meP));
   keepInput('sOffer', offerHTML(s));
-  keepInput('sAction', actionHTML(s, meP, c, myTurn));
+  if (!moving) keepInput('sAction', actionHTML(s, meP, c, myTurn)); /* le panneau change à l'arrivée du pion */
   setHTML('sDetail', (selUser || !isPhone()) ? detailHTML(s).replace('<section class="panel">', '<section class="panel">' + (isPhone() ? '<button class="btn sm ghost closex" data-act="unsel" aria-label="Fermer">✕</button>' : '')) : '');
   setHTML('sPlayers', playersHTML(s));
+  setHTML('sFeed', feedHTML(s));
   setHTML('pTitres', s.status === 'lobby' ? '' : portfolioHTML(s, meP));
   setHTML('pMarche', s.status === 'lobby' ? '' : marketHTML(s));
   const tr = document.getElementById('sTrade');
@@ -1447,6 +1608,8 @@ function renderGame(){
   const dock = document.getElementById('dock'), dh = tab !== 'jeu' && !lob ? dockHTML(s, meP, myTurn, att) : '';
   dock.hidden = !dh; setHTML('dock', dh);
   coach(s, meP, myTurn);
+  const ev = document.getElementById('evt');
+  if (sheetPid && ev && !ev.hidden && ev.querySelector('.sheet')){ const p = byId(s, sheetPid); if (p) ev.innerHTML = sheetHTML(s, p); } else if (ev && ev.hidden) sheetPid = null;
 }
 const keepInput = (id,h) => { const el = document.getElementById(id); if (el && !(el.contains(document.activeElement) && document.activeElement.tagName === 'INPUT')) setHTML(id,h); };
 
@@ -1479,6 +1642,95 @@ function tcard(s,id,mode){
     <span class="tc-mid"><span class="tc-pct">${t.pct}<small>%</small></span></span>
     <span class="tc-bot"><b>${fmt(t.price)}</b><span class="own">${own}</span></span></button>`;
 }
+/* ---------- Déplacement des pions ---------- */
+function afterMove(fn){ if (moving) moveQ.push(fn); else fn(); }
+function moveDone(){ moving = false;
+  if (game && gid) render();
+  const mb = moveBack; moveBack = null;
+  if (mb && Math.abs(scrollY - mb.y1) < 60) setTimeout(() => window.scrollTo({top: mb.y0, behavior: reducedMotion() ? 'auto' : 'smooth'}), 500); const st = document.getElementById('moveHide'); if (st) st.remove(); const q = moveQ; moveQ = []; q.forEach(f => { try { f(); } catch(e){} }); }
+function startMove(m){
+  const n = (m.to - m.from + N) % N;
+  if (!n || n > 12 || reducedMotion()){ return; }
+  const v = document.getElementById('bview'); if (!v) return;
+  moving = true;
+  /* Sur téléphone, si le plateau est hors de l'écran, on le montre le temps du déplacement puis on revient. */
+  moveBack = null;
+  const bw = v.closest('.board-wrap');
+  if (isPhone() && bw && tab === 'jeu'){ const r = bw.getBoundingClientRect();
+    if (r.top < 0 || r.top > innerHeight * 0.45){ const y0 = scrollY, y1 = Math.max(0, y0 + r.top - 64); moveBack = {y0, y1}; window.scrollTo({top: y1, behavior:'smooth'}); } }
+  let st = document.getElementById('moveHide'); if (!st){ st = document.createElement('style'); st.id = 'moveHide'; document.head.appendChild(st); }
+  st.textContent = `#board .pawn[data-pid="${String(m.p.id).replace(/["\\]/g, '')}"]{visibility:hidden}`;
+  const old = v.querySelector('.mover'); if (old) old.remove();
+  const mv = document.createElement('span'); mv.className = 'mover'; mv.style.setProperty('--c', `var(${pcol(m.p.color)})`);
+  mv.textContent = (m.p.name || '?').slice(0,1).toUpperCase(); v.appendChild(mv);
+  const at = i => { const b = document.getElementById('board'), c = b && b.children[i]; if (!c) return null;
+    const r = c.getBoundingClientRect(), vr = v.getBoundingClientRect();
+    return {x: r.left - vr.left + v.scrollLeft + r.width/2, y: r.top - vr.top + v.scrollTop + r.height/2, w: r.width}; };
+  const place = i => { const p = at(i); if (!p) return; const sz = Math.max(18, Math.min(36, p.w*0.5)); mv.style.width = mv.style.height = sz + 'px'; mv.style.fontSize = Math.round(sz*0.5) + 'px'; mv.style.transform = `translate(${p.x - sz/2}px, ${p.y - sz/2}px)`; };
+  mv.style.transition = 'none'; place(m.from);
+  let k = 0; const STEP = n > 8 ? 130 : 170;
+  const tick = () => {
+    k++; const i = (m.from + k) % N;
+    mv.style.transition = `transform ${STEP-20}ms ease-out`; place(i);
+    mv.classList.remove('hop'); void mv.offsetWidth; mv.classList.add('hop');
+    if (zoomOn && (k % 2 === 0 || k === n)) centerOn(i, 'smooth');
+    if (k < n) setTimeout(tick, STEP);
+    else setTimeout(() => { mv.remove(); const c = document.getElementById('board').children[m.to]; if (c){ c.classList.remove('landed'); void c.offsetWidth; c.classList.add('landed'); } moveDone(); }, STEP + 120);
+  };
+  setTimeout(tick, 480);
+  setTimeout(() => { if (moving) moveDone(); }, 480 + n*STEP + 1500);
+}
+
+/* ---------- Carte « royalties » : qui paie qui, combien ---------- */
+function showPay(s, ev){
+  const el = document.getElementById('evt'); if (!el || !ev || !ev.items || !ev.items.length || !RES[ev.r]) return;
+  const payer = byId(s, ev.by); if (!payer) return;
+  const total = ev.items.reduce((t,x) => t + x.amt, 0), mine = ev.items.find(x => x.to === me.id), iPay = ev.by === me.id;
+  const big = iPay ? `<div class="ea minus">− ${fmt(total)}</div>` : mine ? `<div class="ea plus">+ ${fmt(mine.amt)}</div>` : `<div class="ea">${fmt(total)}</div>`;
+  const cell = CELLS[ev.pos], where = cell && cell.t === 'pays' ? ZONES[cell.z].n : TH.rec;
+  const lines = ev.items.map(x => { const q = byId(s, x.to); return q ? `<div class="pyl">${pawn(q)} <b>${q.id === me.id ? 'Toi' : esc(q.name)}</b><span class="note">${x.sh} % de ${esc(RES[ev.r].n)}</span><b class="num">+ ${fmt(x.amt)}</b></div>` : ''; }).join('');
+  el.innerHTML = `<div class="evc pay" role="dialog" aria-label="Royalties"><div class="eh"><span>💸</span>Royalties</div>
+    <div class="eb"><div class="et">${iPay ? 'Tu tombes' : esc(payer.name) + ' tombe'} sur ${RES[ev.r].i} ${esc(RES[ev.r].n)} · ${esc(where)}</div>${big}
+    <div class="pylist">${lines}</div>
+    ${ev.broke ? `<div class="et" style="color:#C2392B">${iPay ? 'Tu fais faillite !' : esc(payer.name) + ' fait faillite !'}</div>` : `<div class="ew">${iPay ? 'Tu paies' : esc(payer.name) + ' paie'} ${ev.items.length > 1 ? 'les joueurs qui détiennent' : 'le joueur qui détient'} au moins ${TIER_MIN[0]} % de cette richesse.</div>`}
+    <button class="btn" data-act="evtClose">OK</button></div></div>`;
+  el.hidden = false; clearTimeout(evtTimer); evtTimer = setTimeout(() => { el.hidden = true; }, iPay || mine ? 7000 : 4500);
+}
+
+/* ---------- Fil en direct : les derniers événements, les nouveaux s'animent ---------- */
+function feedHTML(s){
+  if (s.status === 'lobby') return '';
+  const n = s.logN || s.log.length;
+  if (feedN === null) feedN = n;
+  if (n > feedN){ feedMark = {n: feedN, until: Date.now() + 2500}; feedN = n; } else if (n < feedN) feedN = n;
+  const isNew = k => Date.now() < feedMark.until && n - k > feedMark.n;
+  const last = s.log.slice(-4).reverse();
+  const ico = l => /royalties/.test(l) ? '💸' : /enchérit|Adjugé|enchères|banque rachète/.test(l) ? '🔨' : /achète/.test(l) ? '🛒' : /lance/.test(l) ? '🎲' : /faillite|abandonne/.test(l) ? '💥' : /reçoit/.test(l) ? '💰' : /carte|tire/.test(l) ? '📰' : /Transaction|propose|contre-proposition/.test(l) ? '🤝' : '•';
+  const html = `<section class="panel feed" aria-live="polite"><div class="feedh"><span class="label">En direct</span><button class="btn sm ghost" data-act="feedAll">Tout le journal</button></div>
+    <ul>${last.map((l,k) => `<li class="${isNew(k) ? 'new' : ''}"><i>${ico(l)}</i><span>${esc(l)}</span></li>`).join('')}</ul></section>`;
+  return html;
+}
+
+/* ---------- Fiche d'un joueur : ses titres par richesse ---------- */
+function sheetHTML(s, p){
+  const mine = owned(s, p.id), rs = ownedRes(s, p.id).sort((a,b) => share(s,p.id,b) - share(s,p.id,a));
+  const tierName = t => t < 0 ? 'pas encore de royalties' : t === 1 ? 'monopole' : t >= 2 ? 'super monopole' : 'royalties';
+  const rows = rs.map(r => { const sh = share(s,p.id,r), t = tierOf(sh), nx = TIER_MIN.find(m => m > sh);
+    return `<div class="shr"><div class="shh">${rchip(r)}<b class="num">${sh} %</b></div>
+      <div class="bar"><span style="width:${Math.min(100, sh)}%"></span>${TIER_MIN.map(m => `<i style="left:${m}%"></i>`).join('')}</div>
+      <div class="note">${t < 0 ? `royalties à partir de ${TIER_MIN[0]} %` : `${tierName(t)} · fait payer ${fmt(tierRoy(r,t))}`}${nx ? ` · prochain palier ${nx} %` : ''} · ${RES_T[r].filter(id => s.owners[id] === p.id).map(id => esc(ZONES[TITLES[id].z].n) + ' ' + TITLES[id].pct + ' %').join(', ')}</div></div>`; }).join('');
+  const isMe = p.id === me.id, can = !isMe && byId(s, me.id) && !byId(s, me.id).out && !p.out && s.status === 'playing' && canWrite;
+  return `<div class="evc sheet" role="dialog" aria-label="Titres de ${esc(p.name)}" data-act="noop">
+    <div class="eh" style="background:var(${pcol(p.color)})"><span>${pawn(p)}</span>${esc(p.name)}${isMe ? ' (toi)' : ''}</div>
+    <div class="eb"><div class="kpis"><div class="kpi"><div class="l">Liquidités</div><div class="v">${fmt(p.cash)}</div></div><div class="kpi"><div class="l">Fortune</div><div class="v">${fmt(worth(s,p))}</div></div><div class="kpi"><div class="l">Titres</div><div class="v">${mine.length}</div></div></div>
+      ${p.out ? '<p class="note">Ce joueur a fait faillite.</p>' : rows || '<p class="note">Aucun titre pour le moment.</p>'}
+      <div class="row">${can ? `<button class="btn gold" data-act="tradeWith" data-id="${esc(p.id)}">🤝 Proposer un échange</button>` : ''}<button class="btn ghost" data-act="evtClose">Fermer</button></div></div></div>`;
+}
+function openSheet(pid){
+  const s = game, p = s && byId(s, pid), el = document.getElementById('evt'); if (!p || !el) return;
+  sheetPid = pid; clearTimeout(evtTimer); el.innerHTML = sheetHTML(s, p); el.hidden = false;
+}
+
 function showCard(s, card){
   const ev = document.getElementById('evt'); if (!ev || card.d == null) return;
   const by = byId(s, card.by), plus = card.d > 0;
@@ -1492,7 +1744,7 @@ function portfolioHTML(s, meP){
   const mine = owned(s, me.id), rs = ownedRes(s, me.id);
   const value = mine.reduce((t,id) => t + TITLES[id].price, 0);
   const roy = rs.reduce((t,r) => t + royalty(s,me.id,r), 0);
-  const mono = rs.filter(r => share(s,me.id,r) >= 50).length;
+  const mono = rs.filter(r => share(s,me.id,r) >= TIER_MIN[1]).length;
   const kpis = `<div class="kpis">
     <div class="kpi"><div class="l">Liquidités</div><div class="v">${fmt(meP.cash)}</div></div>
     <div class="kpi"><div class="l">Valeur des titres</div><div class="v">${fmt(value)}</div></div>
@@ -1536,7 +1788,7 @@ function marketHTML(s){
     const sold = holders.reduce((t,x) => t + x.sh, 0), my = share(s,me.id,r), lead = holders[0];
     return `<button class="mrow${mkOpen===r?' open':''}" data-act="mkOpen" data-id="${r}" aria-expanded="${mkOpen===r}"><span class="mi">${RES[r].i}</span>
       <span style="min-width:0"><span class="mn">${esc(RES[r].n)}</span> <span class="note">${sold}/${total} % vendus</span>
-        <span class="stack">${holders.map(x => `<span style="--c:var(${x.p.color});width:${x.sh}%"></span>`).join('')}</span></span>
+        <span class="stack">${holders.map(x => `<span style="--c:var(${pcol(x.p.color)});width:${x.sh}%"></span>`).join('')}</span></span>
       <span class="mr">${my ? `<b>toi ${my} %</b>` : '<b>—</b>'}${lead && lead.p.id !== me.id ? `${esc(lead.p.name)} ${lead.sh} %` : lead ? 'en tête' : 'libre'}</span></button>
       ${mkOpen === r ? `<div class="mdetail">${resPanel(s,r)}</div>` : ''}`;
   }).join('');
@@ -1553,7 +1805,7 @@ function actionHTML(s, meP, c, myTurn){
   if (s.status === 'lobby'){
     const isHost = s.host === me.id;
     const host = byId(s, s.host), standalone = !!window.FIREBASE_CONFIG, link = location.origin + location.pathname + '#' + s.code;
-    const modeTxt = ({classic:'Classique', rapide:'Rapide', chrono:`Chrono ${s.options.minutes || 45} min`})[s.options.mode] || '';
+    const modeTxt = esc(({classic:'Classique', rapide:'Rapide', chrono:`Chrono ${Number(s.options.minutes) || 45} min`})[s.options.mode] || '');
     const summary = `${modeTxt} · ${s.options.theme === 'noir' ? 'Marché noir' : 'thème Classique'} · règles ${s.options.rulesName ? '« ' + esc(s.options.rulesName) + ' »' : 'officielles'}`;
     const count = `<p class="note"><b>${s.players.length} / 6 joueurs</b>${s.players.length < 2 ? ' · il en faut au moins deux' : ` · ${fmt(START[s.players.length])} chacun au départ`}</p>`;
     let b;
@@ -1592,7 +1844,7 @@ function actionHTML(s, meP, c, myTurn){
   if (!myTurn){
     const ph = {roll:'va lancer les dés', buy:'achète des titres', pick:'choisit les titres à mettre aux enchères', act:'termine son tour'}[s.phase] || 'joue';
     return `<section class="panel action"><h2>Au tour de ${esc(c.name)}</h2><p class="note">${pawn(c)} ${esc(c.name)} ${ph}.${meP && meP.out ? ' Tu as fait faillite, tu peux suivre la fin de la partie.' : !meP ? ' Tu regardes la partie.' : ''}</p>
-      ${s.host === me.id && !c.bot ? `<button class="btn sm ghost" data-act="skip" ${dis}>Passer son tour (joueur absent)</button>` : ''}
+      ${canSkip(s) ? `<button class="btn sm ghost" data-act="skip" ${dis}>Passer son tour (joueur absent)</button>` : meP && !meP.out && !c.bot ? `<p class="note">S'il ne joue pas pendant ${SKIP_MS/1000} secondes, n'importe quel joueur pourra passer son tour.</p>` : ''}
       ${!meP && canWrite ? reclaimHTML(s) : ''}</section>`;
   }
   if (s.phase === 'roll'){
@@ -1630,8 +1882,8 @@ function actionHTML(s, meP, c, myTurn){
     picks = picks.filter(id => s.owners[id] === me.id);
     let count = picks.length; Object.keys(RES).forEach(r => { if (countIn(s,me.id,r) >= 4 && picks.some(id => TITLES[id].r === r)) count += RES_T[r].filter(id => s.owners[id] === me.id && !picks.includes(id)).length; });
     return `<section class="panel action mine"><h2>${SPEC.ench.i} ${THEME === 'noir' ? 'Saisie de la police' : 'Enchères obligatoires'}</h2>
-      <p class="note">Le dé rouge impose <b>${need}</b> titre${need>1?'s':''} à vendre. Sélectionnés : <b>${count}</b>. Un titre d'un monopole de 4 titres ou plus entraîne tout le monopole.</p>
-      <div class="list scroll">${mine.map(id => `<div class="trow pickable${picks.includes(id)?' picked':''}" data-act="pickT" data-id="${id}" role="button" tabindex="0"><span class="tn">${rchip(TITLES[id].r)} <span class="note">${esc(ZONES[TITLES[id].z].n)}</span></span><span class="pct">${TITLES[id].pct} %</span><span class="num">${fmt(TITLES[id].price/2)}</span></div>`).join('')}</div>
+      <p class="note">Le dé rouge impose <b>${need}</b> titre${need>1?'s':''} à vendre. Sélectionnés : <b>${count}</b>. Un titre d'un monopole de 4 titres ou plus entraîne tout le monopole. Prix indiqué : mise de départ (${RULE.aucStart} % du prix).</p>
+      <div class="list scroll">${mine.map(id => `<div class="trow pickable${picks.includes(id)?' picked':''}" data-act="pickT" data-id="${id}" role="button" tabindex="0"><span class="tn">${rchip(TITLES[id].r)} <span class="note">${esc(ZONES[TITLES[id].z].n)}</span></span><span class="pct">${TITLES[id].pct} %</span><span class="num">${fmt(Math.round(TITLES[id].price*RULE.aucStart/100))}</span></div>`).join('')}</div>
       <button class="btn big" style="background:var(--s-ench)" data-act="auctionGo" ${dis} ${count < need ? 'disabled' : ''}>Ouvrir les enchères</button>
       ${meP.jokers > 0 ? `<button class="btn gold" data-act="useJoker" ${dis}>${SPEC.joker.i} Jouer ${THEME === 'noir' ? 'ton avocat' : 'un Joker'} (il t'en reste ${meP.jokers})</button>` : ''}</section>`;
   }
@@ -1667,7 +1919,8 @@ function offerHTML(s){
   if (o.to === me.id){
     if (draft.open && draft.counter) return `<section class="panel offer">${composerHTML(s, byId(s,me.id))}</section>`;
     return `<section class="panel offer">${rnd_}<h2>${(o.round||1) > 1 ? 'Réponse' : 'Proposition'} de ${esc(f.name)}</h2><div><div class="label">Tu reçois</div>${part(o.give,f.id,o.cg)}</div><div><div class="label">Tu donnes</div>${part(o.take,t.id,o.ct)}</div>
-    <div class="row"><button class="btn green" data-act="accept" ${dis}>Accepter</button><button class="btn gold" data-act="counterOpen" ${dis}>Contre-proposer</button><button class="btn ghost" data-act="refuse" ${dis}>Refuser</button></div></section>`;
+    ${tradeLocked(s) ? `<p class="note">⏸️ Transactions suspendues pendant ${THEME === 'noir' ? 'la saisie' : 'les enchères'} : tu pourras répondre juste après.</p>` : ''}
+    <div class="row"><button class="btn green" data-act="accept" ${dis} ${tradeLocked(s) ? 'disabled' : ''}>Accepter</button><button class="btn gold" data-act="counterOpen" ${dis} ${tradeLocked(s) ? 'disabled' : ''}>Contre-proposer</button><button class="btn ghost" data-act="refuse" ${dis}>Refuser</button></div></section>`;
   }
   if (o.from === me.id) return `<section class="panel offer">${rnd_}<h2>${(o.round||1) > 1 ? 'Contre-proposition envoyée' : 'Proposition envoyée'}</h2><p class="note">En attente de ${esc(t.name)}.</p><div><div class="label">Tu donnes</div>${part(o.give,f.id,o.cg)}</div><div><div class="label">Tu demandes</div>${part(o.take,t.id,o.ct)}</div>
     <button class="btn sm ghost" data-act="refuse" ${dis}>Retirer</button></section>`;
@@ -1677,10 +1930,10 @@ function offerHTML(s){
 function playersHTML(s){
   const c = s.status === 'playing' ? cur(s) : null;
   return `<section class="panel"><h2>Joueurs</h2><div class="players">${s.players.map(p => {
-    const mon = s.status === 'lobby' ? 0 : Object.keys(RES).filter(r => share(s,p.id,r) >= 50).length;
+    const mon = s.status === 'lobby' ? 0 : Object.keys(RES).filter(r => share(s,p.id,r) >= TIER_MIN[1]).length;
     const tags = [p.id === s.host ? '<span class="tag">hôte</span>' : '', p.bot ? '<span class="tag">ordi</span>' : '', mon ? `<span class="tag gold">${mon} monopole${mon>1?'s':''}</span>` : '',
       p.jokers ? `<span class="tag">${SPEC.joker.i} ${p.jokers}</span>` : '', p.skip ? `<span class="tag warn">${esc(SPEC.douane.l)}</span>` : '', p.out ? '<span class="tag warn">faillite</span>' : ''].join('');
-    return `<div class="pl${c && c.id === p.id ? ' turn' : ''}${p.out ? ' out' : ''}">${pawn(p)}
+    return `<div class="pl${c && c.id === p.id ? ' turn' : ''}${p.out ? ' out' : ''}${s.status !== 'lobby' ? ' tap' : ''}" ${s.status !== 'lobby' ? `data-act="plOpen" data-id="${esc(p.id)}" role="button" tabindex="0" aria-label="Voir les titres de ${esc(p.name)}"` : ''}>${pawn(p)}
       <div style="min-width:0"><div class="nm">${esc(p.name)}${p.id === me.id ? ' (toi)' : ''}</div><div class="sub">${s.status === 'lobby' ? '' : `<span>${owned(s,p.id).length} titres</span>`}${tags}</div></div>
       <div class="cash">${s.status === 'lobby' ? '' : fmt(p.cash) + `<small>fortune ${fmt(worth(s,p))}</small>`}</div></div>`;
   }).join('')}</div></section>`;
@@ -1750,7 +2003,7 @@ function composerHTML(s, meP){
 }
 
 /* =================== CAMÉRA DU PLATEAU =================== */
-let zoomOn = null, followKey = null;
+let zoomOn = null, followKey = null, lastStatus = null;
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function centerOn(i, behavior){
   const v = document.getElementById('bview'), b = document.getElementById('board');
@@ -1761,6 +2014,7 @@ function centerOn(i, behavior){
 }
 /* Suit le pion qui vient de bouger ; revient sur le tien quand c'est ton tour. */
 function follow(s, meP, myTurn, force){
+  if (moving && !force) return;
   let pos = null, key = null;
   if (myTurn && meP){ pos = meP.pos; key = 'me|' + s.turn + '|' + (s.landSeq||0); }
   else if (s.lastLand){ pos = s.lastLand.pos; key = 'l|' + (s.landSeq||0); }
@@ -1787,18 +2041,31 @@ function tips(){
     {id:'auction', when:(s) => s.phase === 'auction' && s.auction && s.auction.seller !== me.id, target:'#sAuction', t:'Les enchères', x:"Tout le monde enchérit en direct. Chaque offre relance un compte à rebours de " + RULE.aucSecs + " secondes, et la dernière offre l'emporte. Bonne occasion de récupérer des parts qui te manquent."},
     {id:'offer', when:(s) => s.offer && s.offer.to === me.id, target:'#sOffer', t:'Une proposition', x:"Un joueur te propose une transaction. Tu peux accepter, refuser, ou contre-proposer : tu changes les richesses ou l'argent, et c'est à lui de répondre."},
     {id:'titles', when:(s) => owned(s, me.id).length > 0, target: navSel('titres'), t:'Tes titres', x:"L'onglet Titres montre tout ce que tu possèdes : tes parts par richesse, ton palier de royalties et les titres libres qu'il te manque pour le palier suivant."},
-    {id:'market', when:(s) => s.round >= 3, target: navSel('marche'), t:'Le marché', x:"L'onglet Marché montre qui possède quoi. Surveille les richesses où un adversaire approche de 30 % ou de 50 %."},
+    {id:'market', when:(s) => s.round >= 3, target: navSel('marche'), t:'Le marché', x:"L'onglet Marché montre qui possède quoi. Surveille les richesses où un adversaire approche de " + TIER_MIN[0] + " % ou de " + TIER_MIN[1] + " %."},
     {id:'trade', when:(s) => s.round >= 4 && owned(s, me.id).length > 0, target: navSel('joueurs'), t:'Négocier', x:"Dans Joueurs, propose des échanges : une richesse entière contre une autre, avec ou sans argent. C'est souvent le seul moyen de compléter un monopole."}
   ];
+}
+function placeCoach(box, tgt){
+  const game_ = document.getElementById('game');
+  if (!isPhone()){ if (box.parentNode !== game_.parentNode){ game_.parentNode.appendChild(box); } box.classList.remove('inline'); return; }
+  const wraps = ['sAuction','sOffer','sAction','sDetail'].map(id => document.getElementById(id));
+  let anchor = tgt && wraps.find(w => w && w.contains(tgt) && w.offsetParent !== null);
+  if (!anchor){ const tabEl = document.querySelector(`#game [class*="p-${tab}"]`); anchor = tab === 'jeu' ? document.getElementById('bctl') : tabEl; }
+  if (!anchor) anchor = game_.firstElementChild;
+  box.classList.add('inline');
+  if (box.nextElementSibling !== anchor) anchor.parentNode.insertBefore(box, anchor);
 }
 function coach(s, meP, myTurn){
   const box = document.getElementById('coach'); if (!box) return;
   document.querySelectorAll('.coach-hi').forEach(e => e.classList.remove('coach-hi'));
-  const list = tips();
+  const list = tips(), CTX = ['roll','buy','pick','auction','offer'];
+  if (coachId && CTX.includes(coachId)){ const was = list.find(t => t.id === coachId); if (was && !was.when(s, meP, myTurn)){ tipsSeen.add(coachId); saveTuto(); } }
+  list.sort((x,y) => CTX.includes(y.id) - CTX.includes(x.id));
   const tip = tutoOn && s.status === 'playing' && meP && !meP.out ? list.find(t => !tipsSeen.has(t.id) && t.when(s, meP, myTurn)) : null;
   if (!tip){ box.hidden = true; coachId = null; return; }
   const tgt = tip.target && document.querySelector(tip.target);
   if (tgt && tgt.offsetParent !== null) tgt.classList.add('coach-hi');
+  placeCoach(box, tgt);
   if (coachId !== tip.id){
     coachId = tip.id;
     box.innerHTML = `<div class="ck">🎓 Tutoriel · ${Math.min(list.length, tipsSeen.size + 1)}/${list.length}</div><b>${esc(tip.t)}</b><p>${esc(tip.x)}</p>
@@ -1808,8 +2075,8 @@ function coach(s, meP, myTurn){
 }
 async function createPractice(){
   const name = readPseudo(); if (!name) return;
-  const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), code = Math.random().toString(36).slice(2,6).toUpperCase();
-  const s = {v:3, code, status:'lobby', host:me.id, createdAt:Date.now(), updatedAt:Date.now(), seq:1, options:{mode:'chrono', minutes:30, theme:'classique', practice:true},
+  const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), code = newCode();
+  const s = {v:3, code, by:me.id, status:'lobby', host:me.id, createdAt:Date.now(), updatedAt:Date.now(), seq:1, options:{mode:'chrono', minutes:30, theme:'classique', practice:true},
     players:[{id:me.id, name, color:'--p1', cash:0, pos:0}], owners:{}, log:[`${name} lance une partie d'entraînement`]};
   ACT.addBot(s, me.id); ACT.addBot(s, me.id); ACT.start(s, me.id);
   tutoOn = true; tipsSeen.clear(); saveTuto();
@@ -2069,6 +2336,13 @@ function edInput(t){
 function edChange(t){
   const R = ed.rules, RR = R.res[ed.res];
   if (t.id === 'edLoad'){ edOpen(t.value || null); return; }
+  if (t.dataset.edg || t.dataset.edv){
+    const S = sanitizeRules(R), path = t.dataset.edg || '', [a,b] = path.split('.');
+    const want = t.dataset.edv ? RR.v : b !== undefined ? R[a][b] : R[a], got = t.dataset.edv ? S.res[ed.res].v : b !== undefined ? S[a][b] : S[a];
+    if (a === 'tiers' && JSON.stringify(S.tiers) !== JSON.stringify(R.tiers)) toast('Les paliers doivent être croissants : tant que ce n\'est pas le cas, le jeu garde les paliers officiels.');
+    else if (JSON.stringify(want) !== JSON.stringify(got)) toast(`Valeur hors limites : le jeu utilisera ${t.dataset.unit === 'm' || t.dataset.edv ? fmt(got) : got}.`);
+    return;
+  }
   if (t.id === 'edTheme'){ ed.theme = t.value === 'noir' ? 'noir' : 'classique'; render(); return; }
   if (t.id === 'edPlayers'){ ed.players = +t.value || 4; renderEditor(); return; }
   if (t.dataset.edkind){ setNameOv('k', t.value); render(); return; }
@@ -2135,14 +2409,16 @@ app.addEventListener('change', e => {
 app.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act, id = b.dataset.id;
-  if (a !== 'quit' && a !== 'delGame' && a !== 'reclaim' && confirmKey) confirmKey = null;
+  if (a !== 'quit' && a !== 'delGame' && a !== 'reclaim' && a !== 'logout' && confirmKey) confirmKey = null;
   if (a === 'menu'){ menuOpen = !menuOpen; render(); return; }
   if (menuOpen && a !== 'quit'){ menuOpen = false; }
   if (a === 'login'){ window.NM_AUTH && window.NM_AUTH.google().catch(err => toast(window.NM_AUTH.explain(err))); return; }
-  if (a === 'logout'){ window.NM_AUTH && window.NM_AUTH.signOut(); return; }
+  if (a === 'logout'){
+    if (confirmKey !== 'logout'){ confirmKey = 'logout'; toast('Touche encore « Se déconnecter » pour confirmer. Tu retrouveras tes parties en te reconnectant avec Google.'); return; }
+    confirmKey = null; window.NM_AUTH && window.NM_AUTH.signOut(); return; }
   if (a === 'reclaim'){ if (confirmKey === 'rc:' + id){ confirmKey = null; mutate(ACT.reclaim, id); } else { confirmKey = 'rc:' + id; render(); } return; }
   if (a === 'delGame'){
-    if (confirmKey === 'del:' + id){ confirmKey = null; db.doc('games/' + id).delete().then(() => toast('Partie supprimée.')).catch(() => toast('La suppression a échoué. Réessaie.')); }
+    if (confirmKey === 'del:' + id){ confirmKey = null; db.doc('games/' + id).delete().then(() => { games = games.filter(g => g._id !== id); renderLobby(); toast('Partie supprimée.'); }).catch(() => toast('La suppression a échoué : seul le créateur de la partie peut la supprimer.')); }
     else confirmKey = 'del:' + id;
     renderLobby(); return;
   }
@@ -2166,7 +2442,7 @@ app.addEventListener('click', e => {
     case 'createClose': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = true; if (i) i.hidden = false; } break; }
     case 'open': openGame(id); break;
     case 'back': openGame(null); break;
-    case 'sel': sel = Number(id); selUser = true; render(); { const d = document.getElementById('sDetail'); if (d && isPhone()) d.scrollIntoView({block:'nearest', behavior:'smooth'}); } break;
+    case 'sel': sel = Number(id); selUser = true; render(); { const d = document.getElementById('sDetail'); if (d && isPhone()) d.scrollIntoView({block:'nearest', behavior: reducedMotion() ? 'auto' : 'smooth'}); } break;
     case 'unsel': selUser = false; render(); break;
     case 'quit': if (confirmKey === 'quit'){ confirmKey = null; mutate(ACT.quit); } else { confirmKey = 'quit'; render(); } break;
     case 'cartT': { const g = game, m = g && byId(g, me.id); if (!g || !g.buy || !m) return;
@@ -2196,7 +2472,13 @@ app.addEventListener('click', e => {
     case 'tutoReset': tutoOn = true; tipsSeen.clear(); saveTuto(); coachId = null; render(); toast('Le tutoriel reprend depuis le début.'); break;
     case 'practice': if (!busy) createPractice(); break;
     case 'resolveLot': break;
-    case 'evtClose': { const ev = document.getElementById('evt'); if (ev) ev.hidden = true; clearTimeout(evtTimer); break; }
+    case 'evtClose': { const ev = document.getElementById('evt'); if (ev) ev.hidden = true; sheetPid = null; clearTimeout(evtTimer); break; }
+    case 'noop': break;
+    case 'plOpen': openSheet(id); break;
+    case 'tradeWith': { const ev = document.getElementById('evt'); if (ev) ev.hidden = true; sheetPid = null;
+      draft = {open:true, to:id, give:[], take:[], cg:0, ct:0}; if (isPhone()) tab = 'joueurs'; else ledger = 'joueurs'; render();
+      const t = document.getElementById('sTrade'); if (t) t.scrollIntoView({block:'start', behavior: reducedMotion() ? 'auto' : 'smooth'}); break; }
+    case 'feedAll': if (isPhone()) tab = 'journal'; else ledger = 'journal'; render(); break;
     case 'tab': tab = id; render(); try { window.scrollTo({top:0}); } catch(err){} if (id === 'jeu' && game) follow(game, byId(game, me.id), game.status === 'playing' && cur(game).id === me.id, true); break;
     case 'ledger': ledger = id; render(); break;
     case 'pfView': pfView = id; render(); break;
@@ -2205,7 +2487,7 @@ app.addEventListener('click', e => {
     case 'goZone': {
       const i = CELLS.findIndex(c => c.t === 'pays' && c.z === id); if (i < 0) return;
       sel = i; tab = 'jeu'; render(); centerOn(i, 'smooth');
-      const d = document.getElementById('sDetail'); if (d && window.matchMedia('(max-width:900px)').matches) d.scrollIntoView({block:'start', behavior:'smooth'});
+      const d = document.getElementById('sDetail'); if (d && window.matchMedia('(max-width:900px)').matches) d.scrollIntoView({block:'start', behavior: reducedMotion() ? 'auto' : 'smooth'});
       break;
     }
     default: if (ACT[a]) mutate(ACT[a], id);
@@ -2218,7 +2500,8 @@ app.addEventListener('submit', e => {
     if (!v) return; if (busy){ toast('Une seconde, une action est en cours…'); return; } i.value = ''; mutate(ACT.say, v, true); }
 });
 document.addEventListener('click', e => { if (menuOpen && !e.target.closest('.menuwrap')){ menuOpen = false; render(); } });
-app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.trow.pickable')){ e.preventDefault(); e.target.click(); } });
+app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.trow.pickable, .pl.tap')){ e.preventDefault(); e.target.click(); }
+  if (e.key === 'Escape'){ const ev = document.getElementById('evt'); if (ev && !ev.hidden){ ev.hidden = true; sheetPid = null; } } });
 app.addEventListener('input', e => {
   if (e.target.id === 'tGive') draft.cg = Math.max(0, Math.round((+e.target.value || 0)*1000/100)*100);
   if (e.target.id === 'tTake') draft.ct = Math.max(0, Math.round((+e.target.value || 0)*1000/100)*100);
@@ -2228,6 +2511,24 @@ app.addEventListener('input', e => {
 app.addEventListener('focusout', e => { if (e.target.id === 'tGive' || e.target.id === 'tTake') setTimeout(() => { const ae = document.activeElement; if (game && !(ae && ae.tagName === 'INPUT' && (ae.id === 'tGive' || ae.id === 'tTake'))) render(); }, 0); });
 
 /* =================== DÉMARRAGE =================== */
+/* La liste des parties n'est suivie qu'à l'accueil : en partie, on économise le quota Firebase. */
+let unsubList = null, cleaned = false, listLoaded = false;
+function listWatch(on){
+  if (!db) return;
+  if (!on){ if (unsubList){ unsubList(); unsubList = null; } return; }
+  if (unsubList) return;
+  unsubList = db.collection('games').orderBy('updatedAt','desc').limit(40).onSnapshot(snap => {
+    games = snap.docs.map(d => Object.assign({_id: d.id}, d.data())).filter(g => { try { return validGame(g) && !!cleanGame(g); } catch(e){ return false; } });
+    cleanOld();
+    if (!gid && view === 'lobby') renderLobby();
+    listLoaded = true;
+  }, () => toast('La liste des parties ne se met plus à jour. Recharge la page.')) || (() => {});
+}
+/* Ménage : l'auteur efface ses parties abandonnées depuis plus de 7 jours. */
+function cleanOld(){
+  if (cleaned || !canWrite || !me.id) return; cleaned = true;
+  games.filter(g => g.by === me.id && Date.now() - (g.updatedAt || 0) > 7*864e5).slice(0, 10).forEach(g => { db.doc('games/' + g._id).delete().catch(() => {}); });
+}
 (async function boot(){
   const C = window.claude;
   if (C && C.use){ try { [db, userCap] = await Promise.all([C.use('db'), C.use('user')]); } catch(e){} }
@@ -2243,17 +2544,14 @@ app.addEventListener('focusout', e => { if (e.target.id === 'tGive' || e.target.
   if (!me.id) canWrite = false;
   const hm = (location.hash || '').match(/^#([A-Za-z0-9]{4})$/); pendingCode = hm ? hm[1].toUpperCase() : null;
   render();
-  db.collection('games').orderBy('updatedAt','desc').limit(30).onSnapshot(snap => {
-    games = snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
-    if (pendingCode){ const g = games.find(x => x.code === pendingCode && x.status !== 'closed'); const c = pendingCode; pendingCode = null;
-      if (g){ openGame(g._id); return; } toast(`La partie ${c} n'existe plus.`); try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} }
-    if (!gid && view === 'lobby') renderLobby();
-  }, () => toast('La liste des parties ne se met plus à jour. Recharge la page.'));
+  if (pendingCode){ const c = pendingCode; pendingCode = null; const g = await findByCode(c);
+    if (g) openGame(g._id); else { toast(`La partie ${c} n'existe plus.`); try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} } }
+  if (!gid) listWatch(true);
   db.collection('rulesets').orderBy('updatedAt','desc').limit(50).onSnapshot(snap => {
     presets = snap.docs.map(d => Object.assign({id: d.id}, d.data())).filter(p => p && p.name && p.rules);
     if (!gid && view === 'lobby') renderLobby();
   }, () => {});
-  const last = pendingCode ? null : store.get('nm.game');
+  const last = gid ? null : store.get('nm.game');
   if (last){
     try { const snap = await db.doc('games/' + last).get(); const d = snap.exists ? snap.data() : null;
       if (d && d.v === 3 && d.status !== 'closed' && d.players.some(p => p.id === me.id)) openGame(last); else store.set('nm.game', null); } catch(e){}
