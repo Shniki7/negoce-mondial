@@ -35,6 +35,7 @@
   --bg:#12161F; --surface:#1B2130; --ink:#EEF1F6; --muted:#9AA3B2; --line:#2C3446; --brand:#9DB8F2; --gold:#F2B83A; --gold-soft:#3A2F14; --good:#4CC27A; --bad:#EE6A5B; color-scheme:dark}
 
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding:0 16px}
 button{font:inherit;color:inherit}
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -285,6 +286,27 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .icopal .ico{border:0;background:var(--bg);border-radius:9px;height:38px;font-size:20px;line-height:1;cursor:pointer}
 .icopal .ico:hover{background:var(--line)}
 .icopal .ico.on{box-shadow:inset 0 0 0 2px var(--k);background:var(--surface)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.invite{background:var(--gold-soft);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.invite .code{font-family:var(--display);font-size:46px;line-height:1;letter-spacing:.14em;color:var(--brand)}
+.linkbox{display:flex;gap:6px;flex-wrap:wrap}
+.linkbox input{flex:1 1 200px;min-width:0;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;font-size:13px;color:var(--ink)}
+.joinrow{display:flex;gap:8px}
+.joinrow input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
+.chat{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto}
+.chat li{background:var(--bg);border-radius:14px 14px 14px 4px;padding:6px 10px;font-size:14px;max-width:85%;align-self:flex-start;overflow-wrap:anywhere}
+.chat li.me{align-self:flex-end;background:var(--gold-soft);border-radius:14px 14px 4px 14px}
+.chat li b{display:block;font-size:11px;color:var(--muted);font-weight:900}
+.chat li.empty{background:none;color:var(--muted);font-size:13px;max-width:none}
+.chatform{display:flex;gap:6px}
+.chatform input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:999px;padding:8px 14px;font:inherit;color:var(--ink)}
+.lbadge{display:inline-flex;min-width:17px;height:17px;border-radius:999px;background:var(--bad);color:#fff;font-size:10px;align-items:center;justify-content:center;padding:0 4px;margin-left:2px}
+.game[data-lobby] #sDetail{display:none}
+@media (max-width:600px){.hero{padding:20px}.hero canvas,.hero p{display:none}.hero h1{font-size:36px}}
+.wait{margin:0;font-size:17px;font-weight:700}
+.hostopts{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--bg)}
+.createform{display:flex;flex-direction:column;gap:12px}
+[data-act="hostOpts"]{align-self:flex-start;text-align:left}
 /* Ledger : onglets du panneau latéral */
 .ltabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:999px;box-shadow:0 0 0 1px var(--line)}
 .ltabs button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer;color:var(--muted);position:relative}
@@ -378,6 +400,7 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
   .ltabs{display:none}
   .game[data-tab="titres"] #pTitres,.game[data-tab="marche"] #pMarche,.game[data-tab="joueurs"] #pJoueurs,.game[data-tab="journal"] #pJournal{display:flex}
   .game[data-lobby] #pJoueurs{display:flex}
+  .game[data-lobby] .board-wrap{display:none}
   .game:not([data-tab="jeu"]) .p-jeu{display:none}
   .game:not([data-tab="jeu"]) #gRules{display:none}
   .bbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);box-shadow:0 -1px 0 var(--line),0 -6px 20px rgba(0,0,0,.08);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
@@ -391,6 +414,31 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
   .dock .dt small{display:block;font-weight:700;font-size:12px;opacity:.75}
 }
 @media (max-width:440px){.tradecols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.toast{bottom:calc(132px + env(safe-area-inset-bottom,0px));text-align:center}}
+/* Téléphone à l'horizontale : barre d'onglets sur le côté, plateau à gauche, actions à droite */
+@media (orientation: landscape) and (max-height: 560px) and (max-width: 1100px){
+  body{padding:0 calc(12px + env(safe-area-inset-right,0px)) 0 calc(80px + env(safe-area-inset-left,0px))}
+  .wrap{padding-block:8px 16px}
+  .top{padding-block:0 6px;margin-bottom:10px}
+  .top .logo{font-size:20px}.top .logo small{font-size:11px;margin-top:2px}
+  .hero{padding:16px 20px}.hero canvas,.hero p{display:none}.hero h1{font-size:34px}
+  .bbar{top:0;bottom:0;left:0;right:auto;width:calc(70px + env(safe-area-inset-left,0px));flex-direction:column;justify-content:center;gap:2px;padding:calc(6px + env(safe-area-inset-top,0px)) 3px 6px calc(3px + env(safe-area-inset-left,0px));box-shadow:1px 0 0 var(--line),6px 0 20px rgba(0,0,0,.06)}
+  .bbar button{flex:0 0 auto;padding:5px 0;font-size:10.5px}
+  .bbar button .bi{font-size:19px}
+  .dock{left:calc(82px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));max-width:520px}
+  .coach{left:calc(82px + env(safe-area-inset-left,0px));right:auto;width:min(380px,calc(100% - 100px));bottom:calc(76px + env(safe-area-inset-bottom,0px));padding:10px 12px}
+  .coach p{font-size:13px}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px));left:calc(50% + 35px)}
+  .game[data-tab="jeu"]{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+  .game[data-tab="jeu"] .board-wrap{grid-column:1;grid-row:1 / span 40;position:sticky;top:8px;width:min(calc(100vh - 96px),52vw);width:min(calc(100dvh - 96px),52vw)}
+  .game[data-tab="jeu"] .side{display:flex;flex-direction:column;gap:12px;grid-column:2;min-width:0;padding-bottom:70px}
+  .game[data-tab="jeu"] .bctl{margin-bottom:6px}
+  .board{max-width:none}
+  .bview.zoom{height:auto;aspect-ratio:1}
+  .bview.zoom .board{width:220%}
+  .btn.big{font-size:20px;padding:9px 16px}
+  .panel{padding:12px 14px}
+}
 </style>
 
 <div class="wrap" id="app">
@@ -876,6 +924,11 @@ const ACT = {
     if ('rules' in arg){ s.rules = arg.rules ? sanitizeRules(arg.rules) : null; s.options.rulesName = arg.rules ? String(arg.name || 'Règles maison').slice(0, 40) : null; }
     log(s, `L'hôte choisit : thème ${s.options.theme === 'noir' ? 'Marché noir' : 'Classique'}, règles ${s.options.rulesName ? '« ' + s.options.rulesName + ' »' : 'officielles'}`);
   },
+  say(s,who,text){
+    const p = byId(s,who), t = String(text || '').trim().slice(0, 200);
+    if (!p || !t) return false;
+    s.chat = (s.chat || []).concat({by:who, n:p.name, t, at:Date.now()}).slice(-40);
+  },
   rematch(s,who){
     if (s.status !== 'over' || s.host !== who) return false;
     Object.assign(s, {status:'lobby', phase:null, owners:{}, winner:null, card:null, dice:null, offer:null, auction:null, buy:null, pick:null});
@@ -942,7 +995,9 @@ const me = {id:null, name:''};
 let games = [], gid = null, game = null, unsubGame = null, busy = false, sel = null;
 let lastRoll = null, lastLand = null, confirmKey = null, toastTimer = null, botTimer = null, rulesOpen = false;
 let picks = [], draft = {open:false, to:null, give:[], take:[], cg:0, ct:0}, bidAmt = null;
+let seenChat = null, lastToastChat = 0;
 let lastCard = null, evtTimer = null, cart = [], cartKey = null;
+let pendingCode = null, hostOpts = false;
 let tab = 'jeu', ledger = 'titres', pfView = 'res', mkFilter = 'all', mkOpen = null;
 const store = {
   get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
@@ -992,6 +1047,8 @@ async function mutate(fn, arg, silent){
   } finally { busy = false; render(); }
 }
 function openGame(id){
+  seenChat = null;
+  if (!id){ try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} }
   if (unsubGame){ unsubGame(); unsubGame = null; }
   gid = id; game = null; sel = null; confirmKey = null; lastRoll = null; lastLand = null; lastCard = null; followKey = null; picks = []; bidAmt = null;
   draft = {open:false, to:null, give:[], take:[], cg:0, ct:0};
@@ -1152,6 +1209,14 @@ function rulesHTML(){
 }
 
 function ago(t){ if (!t) return 'créée'; const m = Math.max(0, Math.round((Date.now() - t)/60000)); return m < 1 ? "créée à l'instant" : m < 60 ? `créée il y a ${m} min` : m < 1440 ? `créée il y a ${Math.round(m/60)} h` : `créée il y a ${Math.round(m/1440)} j`; }
+function joinByCode(code){
+  const el = document.getElementById('joinCode');
+  code = String(code || (el && el.value) || '').trim().toUpperCase();
+  if (!code){ toast('Tape le code donné par ton pote.'); if (el) el.focus(); return; }
+  const g = games.find(x => x.code === code && x.status !== 'closed');
+  if (!g){ toast(`Aucune partie avec le code ${code}. Vérifie-le avec celui qui l'a créée.`); return; }
+  openGame(g._id);
+}
 function renderLobby(){
   if (!document.getElementById('lobby')){
     app.innerHTML = `
@@ -1165,25 +1230,30 @@ function renderLobby(){
         <canvas id="heroMap" aria-hidden="true"></canvas>
       </section>
       <section class="panel">
-        <h2>Créer une partie</h2>
+        <h2>Rejoindre une partie</h2>
         <div class="field"><label class="label" for="pseudo">Ton pseudo</label><input id="pseudo" maxlength="16" autocomplete="nickname" placeholder="Ex. Tanguy"></div>
-        <div class="row">
-          <div class="field"><label class="label" for="mode">Type de partie</label>
-            <select id="mode"><option value="classic">Classique : jusqu'à l'élimination</option><option value="rapide">Rapide : titres distribués au départ</option><option value="chrono">Chrono : durée limitée</option></select></div>
-          <div class="field"><label class="label" for="minutes">Durée (chrono)</label>
-            <select id="minutes"><option value="30">30 minutes</option><option value="45" selected>45 minutes</option><option value="60">1 heure</option></select></div>
-        </div>
-        <div class="field"><label class="label" for="theme">Thème</label>
-          <select id="theme"><option value="classique">Classique : blé, pétrole, or…</option><option value="noir">Marché noir : stupéfiants, armes, contrebande…</option></select></div>
-        <div class="field"><label class="label" for="rulesSel">Règles</label><div class="row" style="flex-wrap:nowrap"><select id="rulesSel" style="flex:1"><option value="">Officielles</option></select><button class="btn sm ghost" data-act="edOpen" style="white-space:nowrap">⚙️ Atelier</button></div></div>
-        <p class="note">Règles officielles : 100 M€ chacun à deux, 66 M€ à trois, 50 M€ à quatre, 40 M€ à cinq, 33 M€ à six. L'Atelier permet de tout modifier : parts des pays, plateau, cartes, argent.</p>
-        <button class="btn gold big" id="createBtn" data-act="create">Créer la partie</button>
-        <button class="btn ghost" id="practiceBtn" data-act="practice">🎓 Partie d'entraînement · toi contre 2 ordinateurs, 30 min, avec tutoriel</button>
-        <p class="note" id="lobbyNote"></p>
+        <form class="joinrow" id="joinForm"><label class="sr" for="joinCode">Code de la partie</label><input id="joinCode" maxlength="4" placeholder="Code, ex. 01UP" autocomplete="off" autocapitalize="characters"><button class="btn" type="submit">Rejoindre</button></form>
+        <p class="note">Un pote t'a donné un code ? Tape-le ici. Sinon, touche une partie de la liste.</p>
+        <div class="tables" id="tables"></div>
       </section>
       <section class="panel">
-        <h2>Parties en cours</h2>
-        <div class="tables" id="tables"></div>
+        <h2>Créer une partie</h2>
+        <p class="note">Tu deviens l'hôte : tu choisis les réglages, tu invites tes potes et tu lances la partie.</p>
+        <div class="row" id="createIntro"><button class="btn gold" data-act="createOpen">+ Nouvelle partie</button><button class="btn ghost" id="practiceBtn" data-act="practice">🎓 S'entraîner contre l'ordinateur</button></div>
+        <div id="createForm" class="createform" hidden>
+          <div class="row">
+            <div class="field"><label class="label" for="mode">Type de partie</label>
+              <select id="mode"><option value="classic">Classique : jusqu'à l'élimination</option><option value="rapide">Rapide : titres distribués au départ</option><option value="chrono">Chrono : durée limitée</option></select></div>
+            <div class="field"><label class="label" for="minutes">Durée (chrono)</label>
+              <select id="minutes"><option value="30">30 minutes</option><option value="45" selected>45 minutes</option><option value="60">1 heure</option></select></div>
+          </div>
+          <div class="field"><label class="label" for="theme">Thème</label>
+            <select id="theme"><option value="classique">Classique : blé, pétrole, or…</option><option value="noir">Marché noir : stupéfiants, armes, contrebande…</option></select></div>
+          <div class="field"><label class="label" for="rulesSel">Règles</label><div class="row" style="flex-wrap:nowrap"><select id="rulesSel" style="flex:1"><option value="">Officielles</option></select><button class="btn sm ghost" data-act="edOpen" style="white-space:nowrap">⚙️ Atelier</button></div></div>
+          <p class="note">Tu pourras encore changer le thème et les règles dans la salle d'attente.</p>
+          <div class="row"><button class="btn gold big" id="createBtn" data-act="create" style="flex:1">Créer la partie</button><button class="btn ghost" data-act="createClose">Annuler</button></div>
+        </div>
+        <p class="note" id="lobbyNote"></p>
       </section>
       <details class="rules panel"><summary>Règles du jeu</summary>${rulesHTML()}</details>
     </main>`;
@@ -1222,7 +1292,10 @@ function ensureGameSkeleton(){
       <nav class="ltabs" id="ltabs" aria-label="Tableaux"></nav>
       <div class="pane-l" id="pTitres"></div>
       <div class="pane-l" id="pMarche"></div>
-      <div class="pane-l" id="pJoueurs"><div id="sPlayers"></div><div id="sTrade"></div></div>
+      <div class="pane-l" id="pJoueurs"><div id="sPlayers"></div>
+        <section class="panel" id="sChat"><h2>Discussion</h2><ul class="chat" id="chatList" aria-live="polite"></ul>
+          <form class="chatform" id="chatForm"><label class="sr" for="chatIn">Message</label><input id="chatIn" maxlength="200" placeholder="Écris un message…" autocomplete="off"><button class="btn sm" type="submit">Envoyer</button></form></section>
+        <div id="sTrade"></div></div>
       <div class="pane-l" id="pJournal"></div>
       <details class="panel rules" id="gRules"><summary>Règles du jeu</summary>${rulesHTML()}<button class="btn sm ghost" data-act="tutoReset">🎓 Revoir le tutoriel</button></details>
     </aside>
@@ -1232,7 +1305,9 @@ function ensureGameSkeleton(){
   <div class="coach" id="coach" role="status" hidden></div>
   <nav class="bbar" id="bbar" aria-label="Navigation"></nav>`;
   const det = document.getElementById('gRules'); det.open = rulesOpen; det.addEventListener('toggle', () => rulesOpen = det.open);
-  window.addEventListener('resize', () => { const c = document.getElementById('bMap'); if (c && game) drawMap(c, game); });
+  let rzT = null;
+  const onRz = () => { clearTimeout(rzT); rzT = setTimeout(() => { if (!game || !document.getElementById('board')) return; render(); const m = byId(game, me.id); follow(game, m, game.status === 'playing' && cur(game).id === me.id, true); }, 180); };
+  window.addEventListener('resize', onRz); window.addEventListener('orientationchange', onRz);
 }
 const setHTML = (id,h) => { const el = document.getElementById(id); if (el && el.innerHTML !== h) el.innerHTML = h; };
 
@@ -1266,7 +1341,7 @@ function renderGame(){
   follow(s, meP, myTurn, false);
   setHTML('sAuction', auctionHTML(s, meP));
   keepInput('sOffer', offerHTML(s));
-  setHTML('sAction', actionHTML(s, meP, c, myTurn));
+  keepInput('sAction', actionHTML(s, meP, c, myTurn));
   setHTML('sDetail', detailHTML(s));
   setHTML('sPlayers', playersHTML(s));
   setHTML('pTitres', s.status === 'lobby' ? '' : portfolioHTML(s, meP));
@@ -1282,10 +1357,20 @@ function renderGame(){
   document.getElementById('game').dataset.tab = tab;
   document.getElementById('game').toggleAttribute('data-lobby', lob);
   document.getElementById('side').dataset.ledger = lob ? 'joueurs' : ledger;
+  const chat = s.chat || [], chatSeen = lob || (isPhone() ? tab === 'joueurs' : ledger === 'joueurs');
+  if (seenChat === null) seenChat = chat.length;
+  const last = chat[chat.length - 1];
+  if (chat.length > seenChat && !chatSeen && last && last.by !== me.id && lastToastChat !== chat.length){ lastToastChat = chat.length; toast(`💬 ${last.n} : ${last.t}`); }
+  if (chatSeen) seenChat = chat.length;
+  const unread = Math.max(0, chat.length - seenChat);
+  const cl = document.getElementById('chatList'), ch = chat.length ? chat.map(m => `<li class="${m.by === me.id ? 'me' : ''}"><b>${esc(m.n)}</b>${esc(m.t)}</li>`).join('') : `<li class="empty">${lob ? 'Organisez-vous ici en attendant le lancement.' : 'Aucun message pour le moment.'}</li>`;
+  if (cl && cl.innerHTML !== ch){ cl.innerHTML = ch; cl.scrollTop = cl.scrollHeight; }
+  const ci = document.getElementById('chatIn'); if (ci){ ci.disabled = !meP || !canWrite; ci.placeholder = meP ? 'Écris un message…' : 'Rejoins la partie pour écrire'; }
+  try { if (s.code && location.hash !== '#' + s.code) history.replaceState(null, '', '#' + s.code); } catch(e){}
   const L = [['titres','Mes titres'],['marche','Marché'],['joueurs','Joueurs'],['journal','Journal']];
-  setHTML('ltabs', lob ? '' : L.map(([k,n]) => `<button class="${ledger===k?'on':''}" data-act="ledger" data-id="${k}" aria-pressed="${ledger===k}">${n}</button>`).join(''));
+  setHTML('ltabs', lob ? '' : L.map(([k,n]) => `<button class="${ledger===k?'on':''}" data-act="ledger" data-id="${k}" aria-pressed="${ledger===k}">${n}${k === 'joueurs' && (unread || att.offer) ? ` <span class="lbadge">${att.offer ? '!' : unread}</span>` : ''}</button>`).join(''));
   const nTitles = meP ? owned(s, me.id).length : 0;
-  const T = [['jeu','🎲','Jeu', att.jeu ? '!' : ''],['titres','📜','Titres', nTitles || ''],['marche','📈','Marché',''],['joueurs','👥','Joueurs', att.offer ? '1' : ''],['journal','🗒️','Journal','']];
+  const T = [['jeu','🎲','Jeu', att.jeu ? '!' : ''],['titres','📜','Titres', nTitles || ''],['marche','📈','Marché',''],['joueurs','👥','Joueurs', att.offer ? '!' : (unread || '')],['journal','🗒️','Journal','']];
   setHTML('bbar', lob ? '' : T.map(([k,i,n,b]) => `<button class="${tab===k?'on':''}" data-act="tab" data-id="${k}" aria-pressed="${tab===k}"><span class="bi">${i}</span>${n}${b !== '' ? `<span class="badge">${b}</span>` : ''}</button>`).join(''));
   const dock = document.getElementById('dock'), dh = tab !== 'jeu' && !lob ? dockHTML(s, meP, myTurn, att) : '';
   dock.hidden = !dh; setHTML('dock', dh);
@@ -1394,17 +1479,31 @@ function actionHTML(s, meP, c, myTurn){
   const dis = busy || !canWrite ? 'disabled' : '';
   if (s.status === 'lobby'){
     const isHost = s.host === me.id;
-    let b = `<p class="note">${s.players.length} / 6 joueurs. ${s.players.length < 2 ? 'Il faut au moins deux joueurs.' : `Chacun recevra ${fmt(START[s.players.length])}.`}</p>`;
-    if (!meP) b += `<button class="btn gold" data-act="joinhere" ${dis} ${s.players.length>=6?'disabled':''}>Rejoindre cette partie</button>`;
-    else if (isHost){
-      b += `<button class="btn gold big" data-act="start" ${dis} ${s.players.length<2?'disabled':''}>Lancer la partie</button>
-        <div class="row"><button class="btn sm ghost" data-act="addBot" ${dis} ${s.players.length>=6?'disabled':''}>+ Ajouter un ordinateur</button>${s.players.filter(p => p.bot).map(p => `<button class="btn sm ghost" data-act="removeBot" data-id="${esc(p.id)}" ${dis}>Retirer ${esc(p.name)}</button>`).join('')}</div>
-        <p class="note">Les ordinateurs jouent depuis ton écran : garde la page ouverte pendant la partie.</p>
-        <div class="row"><div class="field" style="flex:1 1 150px"><label class="label" for="lbTheme">Thème</label><select id="lbTheme" ${dis}><option value="classique" ${s.options.theme !== 'noir' ? 'selected' : ''}>Classique</option><option value="noir" ${s.options.theme === 'noir' ? 'selected' : ''}>Marché noir</option></select></div>
-          <div class="field" style="flex:1 1 150px"><label class="label" for="lbRules">Règles</label><select id="lbRules" ${dis}><option value="">Officielles</option>${presets.map(p => `<option value="${esc(p.id)}" ${s.options.rulesName === p.name ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div></div>
-        <p class="note">Tu peux changer le thème et les règles tant que la partie n'a pas commencé.</p>`;
-    } else b += `<p class="note">En attente du lancement par l'hôte.</p>`;
-    if (!isHost && (s.options.rulesName || s.options.theme === 'noir')) b += `<p class="note">${s.options.theme === 'noir' ? 'Thème Marché noir. ' : ''}${s.options.rulesName ? 'Règles « ' + esc(s.options.rulesName) + ' ».' : ''}</p>`;
+    const host = byId(s, s.host), standalone = !!window.FIREBASE_CONFIG, link = location.origin + location.pathname + '#' + s.code;
+    const modeTxt = ({classic:'Classique', rapide:'Rapide', chrono:`Chrono ${s.options.minutes || 45} min`})[s.options.mode] || '';
+    const summary = `${modeTxt} · ${s.options.theme === 'noir' ? 'Marché noir' : 'thème Classique'} · règles ${s.options.rulesName ? '« ' + esc(s.options.rulesName) + ' »' : 'officielles'}`;
+    const count = `<p class="note"><b>${s.players.length} / 6 joueurs</b>${s.players.length < 2 ? ' · il en faut au moins deux' : ` · ${fmt(START[s.players.length])} chacun au départ`}</p>`;
+    let b;
+    if (isHost){
+      b = `<div class="invite"><div class="label">Code de la partie</div><div class="code">${esc(s.code)}</div>
+        ${standalone ? `<div class="linkbox"><input id="invLink" readonly value="${esc(link)}" aria-label="Lien d'invitation"><button class="btn sm gold" data-act="copyLink">Copier le lien</button>${navigator.share ? '<button class="btn sm ghost" data-act="shareLink">Partager</button>' : ''}</div>
+          <p class="note">Envoie ce lien à tes potes (WhatsApp, SMS…) : en l'ouvrant, ils arrivent directement ici.</p>`
+        : `<p class="note">Donne ce code à tes potes : ils le tapent dans « Rejoindre une partie ».</p>`}</div>
+        ${count}
+        <button class="btn gold big" data-act="start" ${dis} ${s.players.length<2?'disabled':''}>Lancer la partie</button>
+        <button class="btn sm ghost" data-act="hostOpts" aria-expanded="${hostOpts}">${hostOpts ? '▾' : '▸'} Réglages · ${summary}</button>
+        ${hostOpts ? `<div class="hostopts">
+          <div class="row"><div class="field" style="flex:1 1 150px"><label class="label" for="lbTheme">Thème</label><select id="lbTheme" ${dis}><option value="classique" ${s.options.theme !== 'noir' ? 'selected' : ''}>Classique</option><option value="noir" ${s.options.theme === 'noir' ? 'selected' : ''}>Marché noir</option></select></div>
+            <div class="field" style="flex:1 1 150px"><label class="label" for="lbRules">Règles</label><select id="lbRules" ${dis}><option value="">Officielles</option>${presets.map(p => `<option value="${esc(p.id)}" ${s.options.rulesName === p.name ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div></div>
+          <div class="row"><button class="btn sm ghost" data-act="addBot" ${dis} ${s.players.length>=6?'disabled':''}>+ Ajouter un ordinateur</button>${s.players.filter(p => p.bot).map(p => `<button class="btn sm ghost" data-act="removeBot" data-id="${esc(p.id)}" ${dis}>Retirer ${esc(p.name)}</button>`).join('')}</div>
+          <p class="note">Les ordinateurs jouent depuis ton écran : garde la page ouverte pendant la partie.</p></div>` : ''}`;
+    } else if (meP){
+      b = `<p class="wait">⏳ En attente du lancement par <b>${esc(host ? host.name : "l'hôte")}</b>.</p>${count}<p class="note">${summary} · code <b>${esc(s.code)}</b></p>`;
+    } else {
+      b = `<p class="wait">Partie de <b>${esc(host ? host.name : '—')}</b></p>${count}<p class="note">${summary}</p>
+        <div class="field"><label class="label" for="wrPseudo">Ton pseudo</label><input id="wrPseudo" maxlength="16" value="${esc(me.name)}" placeholder="Ex. Nil"></div>
+        <button class="btn gold big" data-act="joinhere" ${dis} ${s.players.length>=6?'disabled':''}>${s.players.length>=6 ? 'Partie complète' : 'Rejoindre cette partie'}</button>`;
+    }
     if (meP) b += `<button class="btn sm ghost" data-act="leave" ${dis}>Quitter la partie</button>`;
     return `<section class="panel action"><h2>Salle d'attente</h2>${b}</section>`;
   }
@@ -1967,7 +2066,17 @@ app.addEventListener('click', e => {
   switch (a){
     case 'create': if (!busy) createGame(); break;
     case 'join': { const n = readPseudo(); if (!n) return; openGame(id); mutate(ACT.join, n); break; }
-    case 'joinhere': { if (!me.name){ openGame(null); toast('Choisis un pseudo, puis rejoins la partie depuis la liste.'); return; } mutate(ACT.join, me.name); break; }
+    case 'joinhere': { const el = document.getElementById('wrPseudo'), v = ((el && el.value) || me.name || '').trim().slice(0,16);
+      if (!v){ toast('Choisis un pseudo pour rejoindre.'); if (el) el.focus(); return; }
+      me.name = v; store.set('nm.pseudo', v); mutate(ACT.join, v); break; }
+    case 'copyLink': { const el = document.getElementById('invLink'); if (!el) return;
+      try { navigator.clipboard.writeText(el.value).then(() => toast('Lien copié. Colle-le dans ta conversation avec tes potes.'), () => { el.select(); toast('Sélectionné : fais Ctrl+C pour copier.'); }); } catch(err){ el.select(); toast('Sélectionné : fais Ctrl+C pour copier.'); }
+      break; }
+    case 'shareLink': { const el = document.getElementById('invLink'); if (el && navigator.share) navigator.share({title:'Négoce Mondial', text:`Rejoins ma partie de Négoce Mondial (code ${game ? game.code : ''})`, url: el.value}).catch(() => {}); break; }
+    case 'joinCode': joinByCode(); break;
+    case 'hostOpts': hostOpts = !hostOpts; render(); break;
+    case 'createOpen': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = false; if (i) i.hidden = true; const m = document.getElementById('mode'); if (m) m.focus(); } break; }
+    case 'createClose': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = true; if (i) i.hidden = false; } break; }
     case 'open': openGame(id); break;
     case 'back': openGame(null); break;
     case 'sel': sel = Number(id); render(); break;
@@ -2014,6 +2123,11 @@ app.addEventListener('click', e => {
     default: if (ACT[a]) mutate(ACT[a], id);
   }
 });
+app.addEventListener('submit', e => {
+  if (e.target.id === 'joinForm'){ e.preventDefault(); joinByCode(); }
+  if (e.target.id === 'chatForm'){ e.preventDefault(); const i = document.getElementById('chatIn'), v = i ? i.value.trim() : '';
+    if (!v) return; if (busy){ toast('Une seconde, une action est en cours…'); return; } i.value = ''; mutate(ACT.say, v, true); }
+});
 app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.trow.pickable')){ e.preventDefault(); e.target.click(); } });
 app.addEventListener('input', e => {
   if (e.target.id === 'tGive') draft.cg = Math.max(0, Math.round((+e.target.value || 0)*1000/100)*100);
@@ -2037,16 +2151,19 @@ app.addEventListener('focusout', e => { if (e.target.id === 'tGive' || e.target.
     me.name = store.get('nm.pseudo') || (await userCap.name()) || '';
   }
   if (!me.id) canWrite = false;
+  const hm = (location.hash || '').match(/^#([A-Za-z0-9]{4})$/); pendingCode = hm ? hm[1].toUpperCase() : null;
   render();
   db.collection('games').orderBy('updatedAt','desc').limit(30).onSnapshot(snap => {
     games = snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
+    if (pendingCode){ const g = games.find(x => x.code === pendingCode && x.status !== 'closed'); const c = pendingCode; pendingCode = null;
+      if (g){ openGame(g._id); return; } toast(`La partie ${c} n'existe plus.`); try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} }
     if (!gid && view === 'lobby') renderLobby();
   }, () => toast('La liste des parties ne se met plus à jour. Recharge la page.'));
   db.collection('rulesets').orderBy('updatedAt','desc').limit(50).onSnapshot(snap => {
     presets = snap.docs.map(d => Object.assign({id: d.id}, d.data())).filter(p => p && p.name && p.rules);
     if (!gid && view === 'lobby') renderLobby();
   }, () => {});
-  const last = store.get('nm.game');
+  const last = pendingCode ? null : store.get('nm.game');
   if (last){
     try { const snap = await db.doc('games/' + last).get(); const d = snap.exists ? snap.data() : null;
       if (d && d.v === 3 && d.status !== 'closed' && d.players.some(p => p.id === me.id)) openGame(last); else store.set('nm.game', null); } catch(e){}
