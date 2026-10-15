@@ -563,6 +563,41 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
 .hrow .num small{display:block;font-size:11px;color:var(--muted);font-weight:700}
 .trow .own{display:inline-flex;align-items:center;gap:5px}
 .trow .own small{font-size:12px;font-weight:800;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Discussion à part : bulle flottante + fenêtre */
+.chatfab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:28;width:56px;height:56px;border-radius:50%;border:0;background:var(--brand);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+.chatfab.on{background:var(--gold)}
+.chatfab .badge{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#E23B3B;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--surface)}
+.chatfab .badge[hidden]{display:none}
+.chatfab.ping{animation:chatPing 1.6s ease-in-out infinite}
+@keyframes chatPing{0%,100%{transform:none}50%{transform:scale(1.1)}}
+.chatbox{position:fixed;right:20px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:29;width:min(360px,calc(100vw - 40px));height:clamp(250px,calc(100vh - 390px),440px);background:var(--surface);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:8px;padding:12px}
+.chatbox[hidden]{display:none}
+.chath{display:flex;justify-content:space-between;align-items:center;font-size:16px}
+.chatbox .chat{flex:1;max-height:none;min-height:0}
+.chat li b{display:flex;align-items:center;gap:5px}
+.chat .cdot{width:9px;height:9px;border-radius:50%;background:var(--c);display:inline-block}
+.quick{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.quick[hidden]{display:none}
+.qchip{flex:none;border:0;border-radius:999px;background:var(--bg);color:var(--ink);font-weight:800;font-size:13px;padding:6px 11px;cursor:pointer;min-height:34px}
+@media (max-width:900px){
+  .chatfab{right:14px;bottom:calc(78px + env(safe-area-inset-bottom,0px));width:52px;height:52px;font-size:24px}
+  body:has(#dock:not([hidden])) .chatfab{bottom:calc(148px + env(safe-area-inset-bottom,0px))}
+  .chatbox{left:0;right:0;bottom:0;width:auto;height:min(72dvh,560px);border-radius:20px 20px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));z-index:35}
+  .qchip{min-height:40px}
+}
+@media (orientation:landscape) and (max-height:560px){
+  .chatfab{right:12px;bottom:12px}
+  body:has(#dock:not([hidden])) .chatfab{bottom:76px}
+  .chatbox{left:auto;right:12px;width:min(380px,60vw);height:calc(100dvh - 24px);bottom:12px;border-radius:18px}
+}
+@media (prefers-reduced-motion:reduce){.chatfab.ping{animation:none}}
+/* Grand écran : la discussion devient une 3e colonne, sans rien recouvrir */
+@media (min-width:1200px) and (min-height:561px){
+  .game.chat-on{grid-template-columns:minmax(0,1fr) 370px 320px}
+  .game .chatbox{position:sticky;top:10px;right:auto;bottom:auto;width:auto;height:calc(100vh - 110px);grid-column:3;grid-row:1;box-shadow:0 4px 18px rgba(0,0,0,.12);z-index:1}
+  .game.chat-on ~ .chatfab, .game.chat-on + .dock + .chatfab{display:none}
+  .game.chat-on .board-wrap .bctl{position:static;flex-direction:row}
+}
 </style>
 
 <div class="wrap" id="app">
@@ -1160,7 +1195,7 @@ let lastRoll = null, lastLand = null, confirmKey = null, toastTimer = null, botT
 let picks = [], draft = {open:false, to:null, give:[], take:[], cg:0, ct:0}, bidAmt = null;
 let seenChat = null, lastToastChat = 0;
 let lastCard = null, evtTimer = null, cart = [], cartKey = null;
-let lastPay = null, posMem = {}, moving = false, moveBack = null, moveQ = [], feedN = null, feedMark = {n:0, until:0}, sheetPid = null;
+let chatOpen = false, lastPay = null, posMem = {}, moving = false, moveBack = null, moveQ = [], feedN = null, feedMark = {n:0, until:0}, sheetPid = null;
 let pendingCode = null, hostOpts = false, menuOpen = false, selUser = false, edMoreOpen = null;
 let tab = 'jeu', ledger = 'titres', pfView = 'res', mkFilter = 'all', mkOpen = null;
 const store = {
@@ -1547,14 +1582,20 @@ function ensureGameSkeleton(){
       <div class="pane-l" id="pTitres"></div>
       <div class="pane-l" id="pMarche"></div>
       <div class="pane-l" id="pJoueurs"><div id="sPlayers"></div>
-        <section class="panel" id="sChat"><h2>Discussion</h2><ul class="chat" id="chatList" aria-live="polite"></ul>
-          <form class="chatform" id="chatForm"><label class="sr" for="chatIn">Message</label><input id="chatIn" maxlength="200" placeholder="Écris un message…" autocomplete="off"><button class="btn sm" type="submit">Envoyer</button></form></section>
         <div id="sTrade"></div></div>
       <div class="pane-l" id="pJournal"></div>
       <details class="panel rules" id="gRules"><summary>Règles du jeu</summary>${rulesHTML()}<button class="btn sm ghost" data-act="tutoReset">🎓 Revoir le tutoriel</button></details>
     </aside>
+  <section class="chatbox" id="chatBox" hidden aria-label="Discussion">
+    <div class="chath"><b>💬 Discussion</b><button class="btn sm ghost" data-act="chatToggle" aria-label="Fermer la discussion">✕</button></div>
+    <ul class="chat" id="chatList" aria-live="polite"></ul>
+    <div class="quick" id="chatQuick">${['👋 Salut','😂','GG 👏','Allez !','Tu me dois des sous 💸','On échange ?'].map(q => `<button class="qchip" data-act="chatQuick" data-id="${q}">${q}</button>`).join('')}</div>
+    <form class="chatform" id="chatForm"><label class="sr" for="chatIn">Message</label><input id="chatIn" maxlength="200" placeholder="Écris un message…" autocomplete="off"><button class="btn sm" type="submit">Envoyer</button></form>
+  </section>
   </main>
   <div class="dock" id="dock" hidden></div>
+  <button class="chatfab" id="chatFab" data-act="chatToggle" aria-label="Discussion" aria-expanded="false">💬<span class="badge" id="chatBadge" hidden></span></button>
+
   <div class="evt" id="evt" data-act="evtClose" hidden></div>
   <div class="coach" id="coach" role="status" hidden></div>
   <nav class="bbar" id="bbar" aria-label="Navigation"></nav>`;
@@ -1628,20 +1669,24 @@ function renderGame(){
   document.getElementById('game').dataset.tab = tab;
   document.getElementById('game').toggleAttribute('data-lobby', lob);
   document.getElementById('side').dataset.ledger = lob ? 'joueurs' : ledger;
-  const chat = s.chat || [], chatSeen = lob || (isPhone() ? tab === 'joueurs' : ledger === 'joueurs');
+  const chat = s.chat || [], chatSeen = chatOpen;
   if (seenChat === null) seenChat = chat.length;
   const last = chat[chat.length - 1];
   if (chat.length > seenChat && !chatSeen && last && last.by !== me.id && lastToastChat !== chat.length){ lastToastChat = chat.length; toast(`💬 ${last.n} : ${last.t}`); }
   if (chatSeen) seenChat = chat.length;
   const unread = Math.max(0, chat.length - seenChat);
-  const cl = document.getElementById('chatList'), ch = chat.length ? chat.map(m => `<li class="${m.by === me.id ? 'me' : ''}"><b>${esc(m.n)}</b>${esc(m.t)}</li>`).join('') : `<li class="empty">${lob ? 'Organisez-vous ici en attendant le lancement.' : 'Aucun message pour le moment.'}</li>`;
+  const cb = document.getElementById('chatBox'), cf = document.getElementById('chatFab'), bd = document.getElementById('chatBadge');
+  document.getElementById('game').classList.toggle('chat-on', chatOpen);
+  if (cb){ cb.hidden = !chatOpen; cf.setAttribute('aria-expanded', chatOpen); cf.classList.toggle('on', chatOpen); bd.hidden = !unread || chatOpen; bd.textContent = unread > 9 ? '9+' : unread; cf.classList.toggle('ping', !!unread && !chatOpen);
+    document.getElementById('chatQuick').hidden = !meP || !canWrite; }
+  const cl = document.getElementById('chatList'), ch = chat.length ? chat.map(m => { const p = byId(s, m.by); return `<li class="${m.by === me.id ? 'me' : ''}"><b>${p ? `<i class="cdot" style="--c:var(${pcol(p.color)})"></i>` : ''}${esc(m.n)}</b>${esc(m.t)}</li>`; }).join('') : `<li class="empty">${lob ? 'Organisez-vous ici en attendant le lancement.' : 'Aucun message pour le moment.'}</li>`;
   if (cl && cl.innerHTML !== ch){ cl.innerHTML = ch; cl.scrollTop = cl.scrollHeight; }
   const ci = document.getElementById('chatIn'); if (ci){ ci.disabled = !meP || !canWrite; ci.placeholder = meP ? 'Écris un message…' : 'Rejoins la partie pour écrire'; }
   try { if (s.code && location.hash !== '#' + s.code) history.replaceState(null, '', '#' + s.code); } catch(e){}
   const L = [['titres','Mes titres'],['marche','Marché'],['joueurs','Joueurs'],['journal','Journal']];
-  setHTML('ltabs', lob ? '' : L.map(([k,n]) => `<button class="${ledger===k?'on':''}" data-act="ledger" data-id="${k}" aria-pressed="${ledger===k}">${n}${k === 'joueurs' && (unread || att.offer) ? ` <span class="lbadge">${att.offer ? '!' : unread}</span>` : ''}</button>`).join(''));
+  setHTML('ltabs', lob ? '' : L.map(([k,n]) => `<button class="${ledger===k?'on':''}" data-act="ledger" data-id="${k}" aria-pressed="${ledger===k}">${n}${k === 'joueurs' && att.offer ? ` <span class="lbadge">!</span>` : ''}</button>`).join(''));
   const nTitles = meP ? owned(s, me.id).length : 0;
-  const T = [['jeu','🎲','Jeu', att.jeu ? '!' : ''],['titres','📜','Titres', nTitles || ''],['marche','📈','Marché',''],['joueurs','👥','Joueurs', att.offer ? '!' : (unread || '')],['journal','🗒️','Journal','']];
+  const T = [['jeu','🎲','Jeu', att.jeu ? '!' : ''],['titres','📜','Titres', nTitles || ''],['marche','📈','Marché',''],['joueurs','👥','Joueurs', att.offer ? '!' : ''],['journal','🗒️','Journal','']];
   setHTML('bbar', lob ? '' : T.map(([k,i,n,b]) => `<button class="${tab===k?'on':''}" data-act="tab" data-id="${k}" aria-pressed="${tab===k}"><span class="bi">${i}</span>${n}${b !== '' ? `<span class="badge">${b}</span>` : ''}</button>`).join(''));
   const dock = document.getElementById('dock'), dh = tab !== 'jeu' && !lob ? dockHTML(s, meP, myTurn, att) : '';
   dock.hidden = !dh; setHTML('dock', dh);
@@ -2479,7 +2524,8 @@ app.addEventListener('change', e => {
 app.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act, id = b.dataset.id;
-  if (a !== 'quit' && a !== 'delGame' && a !== 'reclaim' && a !== 'logout' && confirmKey) confirmKey = null;
+  if (a === 'chatToggle' || a === 'chatQuick'){ /* sans effet sur les confirmations en cours */ }
+  else if (a !== 'quit' && a !== 'delGame' && a !== 'reclaim' && a !== 'logout' && confirmKey) confirmKey = null;
   if (a === 'menu'){ menuOpen = !menuOpen; render(); return; }
   if (menuOpen && a !== 'quit'){ menuOpen = false; }
   if (a === 'login'){ window.NM_AUTH && window.NM_AUTH.google().catch(err => toast(window.NM_AUTH.explain(err))); return; }
@@ -2544,6 +2590,8 @@ app.addEventListener('click', e => {
     case 'resolveLot': break;
     case 'evtClose': { const ev = document.getElementById('evt'); if (ev) ev.hidden = true; sheetPid = null; clearTimeout(evtTimer); break; }
     case 'noop': break;
+    case 'chatToggle': chatOpen = !chatOpen; render(); if (chatOpen){ const l = document.getElementById('chatList'); if (l) l.scrollTop = l.scrollHeight; const i = document.getElementById('chatIn'); if (i && !isPhone() && !i.disabled) i.focus(); } break;
+    case 'chatQuick': if (game && byId(game, me.id) && canWrite) mutate(ACT.say, id, true); break;
     case 'plOpen': openSheet(id); break;
     case 'tradeWith': { const ev = document.getElementById('evt'); if (ev) ev.hidden = true; sheetPid = null;
       draft = {open:true, to:id, give:[], take:[], cg:0, ct:0}; if (isPhone()) tab = 'joueurs'; else ledger = 'joueurs'; render();
@@ -2587,7 +2635,7 @@ app.addEventListener('submit', e => {
 });
 document.addEventListener('click', e => { if (menuOpen && !e.target.closest('.menuwrap')){ menuOpen = false; render(); } });
 app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.trow.pickable, .pl.tap')){ e.preventDefault(); e.target.click(); }
-  if (e.key === 'Escape'){ const ev = document.getElementById('evt'); if (ev && !ev.hidden){ ev.hidden = true; sheetPid = null; } } });
+  if (e.key === 'Escape'){ const ev = document.getElementById('evt'); if (ev && !ev.hidden){ ev.hidden = true; sheetPid = null; } else if (chatOpen){ chatOpen = false; render(); } } });
 app.addEventListener('input', e => {
   if (e.target.id === 'tGive') draft.cg = Math.max(0, Math.round((+e.target.value || 0)*1000/100)*100);
   if (e.target.id === 'tTake') draft.ct = Math.max(0, Math.round((+e.target.value || 0)*1000/100)*100);
