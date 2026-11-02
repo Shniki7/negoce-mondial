@@ -598,6 +598,31 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
   .game.chat-on ~ .chatfab, .game.chat-on + .dock + .chatfab{display:none}
   .game.chat-on .board-wrap .bctl{position:static;flex-direction:row}
 }
+/* Ambiance : bulles d'argent, bandeau de tour, secousse, confettis, routes commerciales */
+.floater{position:fixed;z-index:40;transform:translate(-50%,0);pointer-events:none;font-weight:900;font-size:15px;padding:3px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:0 6px 16px rgba(0,0,0,.25);animation:floatUp 1.6s ease-out forwards}
+.floater.plus{background:var(--good);color:#fff}.floater.minus{background:var(--bad);color:#fff}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}14%{opacity:1;transform:translate(-50%,-10px) scale(1.12)}24%{transform:translate(-50%,-14px) scale(1)}100%{opacity:0;transform:translate(-50%,-60px)}}
+.bump{animation:bump .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{40%{transform:scale(1.18)}}
+.turnban{position:fixed;left:50%;top:36%;z-index:35;transform:translate(-50%,-50%);pointer-events:none;text-align:center;color:#fff;background:linear-gradient(135deg,#1F3A68,#2C5BA8);padding:16px 34px 14px;border-radius:22px;box-shadow:0 0 0 4px var(--gold),0 22px 60px rgba(0,0,0,.45);animation:ban 2s cubic-bezier(.2,1.3,.4,1) forwards;max-width:calc(100% - 32px)}
+.turnban b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(28px,6vw,46px);letter-spacing:.03em;line-height:1.1}
+.turnban small{display:block;font-weight:800;font-size:14px;opacity:.85;margin-top:4px}
+@keyframes ban{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-5deg)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}26%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.96)}}
+.board.shake{animation:shake .55s}
+@keyframes shake{15%{transform:translateX(-8px) rotate(-.4deg)}35%{transform:translateX(7px) rotate(.4deg)}55%{transform:translateX(-5px)}75%{transform:translateX(3px)}}
+.cell.bought{animation:bought 1.2s ease-out}
+@keyframes bought{0%{box-shadow:inset 0 0 0 1.2cqi #2FB866;filter:brightness(1.15)}100%{box-shadow:inset 0 0 0 0 #2FB866}}
+.confetti{position:fixed;inset:0;z-index:45;pointer-events:none}
+.routes{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
+.sndbtn{padding:6px 9px;font-size:15px;line-height:1;flex:none}.sndbtn.off{opacity:.4;filter:grayscale(1)}
+.btn.autoend{position:relative;overflow:hidden}
+.btn.autoend::after{content:'';position:absolute;left:0;bottom:0;height:5px;background:var(--gold);animation:autoend 2.6s linear forwards}
+@keyframes autoend{from{width:0}to{width:100%}}
+.btn.ready:not(:disabled){animation:ready 1.5s ease-in-out infinite}
+@keyframes ready{50%{transform:scale(1.035);box-shadow:0 3px 0 rgba(0,0,0,.25),0 0 0 6px color-mix(in srgb,var(--gold) 35%,transparent)}}
+.count.hot{animation:hot .45s ease-out;color:var(--bad)}
+@keyframes hot{30%{transform:scale(1.35)}}
+@media (prefers-reduced-motion:reduce){.floater,.turnban,.board.shake,.cell.bought,.btn.autoend::after,.btn.ready,.count.hot,.bump{animation:none}}
 </style>
 
 <div class="wrap" id="app">
@@ -775,6 +800,11 @@ function applyTheme(t){
 }
 
 /* =================== MOTEUR DE RÈGLES =================== */
+/* Grandes tables (règles « dyn », parties lancées avec cette version) : les montants fixes suivent le capital de départ,
+   pour qu'à 5-6 joueurs un double ou une carte ne pèse pas deux fois plus lourd qu'à 4. */
+const KT = s => (s && s.dyn && s.startCash && START[4]) ? Math.min(1, s.startCash/START[4]) : 1;
+const scaled = (s,v) => Math.round(v*KT(s)/50)*50;
+const douaneTax = s => !!(s && s.dyn) && alive(s).length >= 5;
 const fmt = k => { const m = k/1000; return m.toLocaleString('fr-FR',{maximumFractionDigits: Math.abs(m) < 10 ? 2 : 1}) + ' M€'; };
 const rnd = n => Math.floor(Math.random()*n);
 const byId = (s,id) => s.players.find(p => p.id === id);
@@ -855,7 +885,7 @@ function payRoyalties(s,p,r){
 function eligible(s,p){
   const b = s.buy; if (!b) return [];
   const free = id => !s.owners[id];
-  if (b.mode === 'zone') return ZONE_T[b.zone].filter(free);
+  if (b.mode === 'zone') return (s.dyn && b.res ? [...new Set([...ZONE_T[b.zone], ...RES_T[b.res]])] : ZONE_T[b.zone]).filter(free);
   const have = new Set(ownedRes(s,p.id));
   if (b.mode === 'cont') return Object.keys(TITLES).filter(id => { const t = TITLES[id]; return free(id) && have.has(t.r) && ZONES[t.z].g === b.cont && !CONT[b.cont].excl.includes(t.z); });
   return Object.keys(TITLES).filter(id => free(id) && have.has(TITLES[id].r));
@@ -867,7 +897,7 @@ function land(s,p){
     case 'pays':
       s.buy = {mode:'zone', zone:c.z, res:c.r, left:RULE.maxBuy, n:0}; s.phase = 'buy'; break;
     case 'rec':
-      gain(s,p,RULE.rec*d,`case ${TH.rec}, ${d} aux dés`); payRoyalties(s,p,c.r); break;
+      gain(s,p,scaled(s,RULE.rec)*d,`case ${TH.rec}, ${d} aux dés`); payRoyalties(s,p,c.r); break;
     case 'cont':
       s.buy = {mode:'cont', cont:c.c, left:RULE.maxBuy, n:0};
       if (eligible(s,p).length) s.phase = 'buy'; else { s.buy = null; log(s, `${p.name} : aucun titre disponible en ${CONT[c.c].n} pour les richesses qu'il possède`); }
@@ -887,13 +917,15 @@ function land(s,p){
     }
     case 'actu': {
       const idx = s.deck[s.deckPos % s.deck.length]; s.deckPos++;
-      const card = NEWS[idx];
-      s.card = {text: `${card.t} : ${card.d > 0 ? 'recevez' : 'payez'} ${fmt(Math.abs(card.d))}`, t:card.t, d:card.d, by:p.id, seq:(s.card ? s.card.seq : 0) + 1};
+      const card = NEWS[idx], dd = scaled(s, card.d);
+      s.card = {text: `${card.t} : ${dd > 0 ? 'recevez' : 'payez'} ${fmt(Math.abs(dd))}`, t:card.t, d:dd, by:p.id, seq:(s.card ? s.card.seq : 0) + 1};
       log(s, `${p.name} tire une carte ${SPEC.actu.l} : ${card.t}`);
-      if (card.d > 0) gain(s,p,card.d,'actualité'); else charge(s,p,-card.d,null,'actualité');
+      if (dd > 0) gain(s,p,dd,'actualité'); else charge(s,p,-dd,null,'actualité');
       break;
     }
-    case 'douane': p.skip = true; log(s, `${p.name} : ${SPEC.douane.l}, il passera son prochain tour`); break;
+    case 'douane':
+      if (douaneTax(s)){ charge(s,p,scaled(s,RULE.dbl)*s.dice[0],null,`${SPEC.douane.l}, dé rouge ${s.dice[0]}`); break; }
+      p.skip = true; log(s, `${p.name} : ${SPEC.douane.l}, il passera son prochain tour`); break;
     case 'joker':
       if (!many) log(s, `À deux joueurs, la case ${SPEC.joker.l} est une case repos`);
       else if (s.jokersLeft > 0) s.jokerOffer = true;
@@ -954,7 +986,7 @@ const ACT = {
     shuffle(s.players);
     s.players.forEach(p => { p.cash = cash; p.pos = 0; p.laps = 0; p.out = false; p.skip = false; p.jokers = 0; });
     Object.assign(s, {status:'playing', startedAt:Date.now(), turn:0, round:1, phase:'roll', owners:{}, buy:null, pick:null, auction:null, offer:null, jokerOffer:false,
-      deck: shuffle(NEWS.map((_,i) => i)), deckPos:0, turnAt:Date.now(), jokersLeft:RULE.jokers, card:null, dice:null, bankrupts:0, winner:null, startCash:cash});
+      deck: shuffle(NEWS.map((_,i) => i)), deckPos:0, turnAt:Date.now(), jokersLeft:RULE.jokers, card:null, dice:null, bankrupts:0, winner:null, startCash:cash, dyn:1});
     if (s.options.mode === 'chrono') s.endsAt = Date.now() + s.options.minutes*60000;
     log(s, `La partie commence avec ${fmt(cash)} chacun. ${s.players[0].name} ouvre le jeu.`);
     if (s.options.mode === 'rapide'){
@@ -969,7 +1001,7 @@ const ACT = {
     const p = cur(s), a = 1+rnd(6), b = 1+rnd(6);
     s.dice = [a,b]; s.rollSeq = (s.rollSeq||0) + 1; s.card = s.card && s.card.by === p.id ? s.card : s.card;
     log(s, `${p.name} lance ${a} (dé rouge) et ${b}`);
-    if (a === b && !charge(s,p,RULE.dbl*a,null,`pénalité du double ${a}`)){ if (s.status === 'playing') nextTurn(s); return; }
+    if (a === b && !charge(s,p,scaled(s,RULE.dbl)*a,null,`pénalité du double ${a}`)){ if (s.status === 'playing') nextTurn(s); return; }
     const np = p.pos + a + b;
     if (np >= N){ p.laps = (p.laps||0) + 1; log(s, `${p.name} boucle ${p.laps === 1 ? 'son premier' : 'un nouveau'} tour du monde`); }
     p.pos = np % N;
@@ -1360,10 +1392,11 @@ let lastSkip = false;
 function canSkip(s){ if (!s || s.status !== 'playing' || s.phase === 'auction') return false; const c = cur(s), m = byId(s, me.id); return !!(m && !m.out && !c.bot && c.id !== me.id && (s.host === me.id || absent(s,c))); }
 /* Battement de présence toutes les 45 s tant que la partie est ouverte et visible. */
 setInterval(() => { if (game && gid && byId(game, me.id) && game.status !== 'closed' && !busy && document.visibilityState !== 'hidden') mutate(ACT.ping, null, true); }, 60000);
+let lastTick = null;
 setInterval(() => {
   if (!game) return;
   const el = document.getElementById('aCount');
-  if (el && game.auction){ const t = Math.max(0, Math.ceil((aucEnd(game.auction) - Date.now())/1000)); el.textContent = t > 0 ? `${t} s` : 'Adjugé…'; }
+  if (el && game.auction){ const t = Math.max(0, Math.ceil((aucEnd(game.auction) - Date.now())/1000)); el.textContent = t > 0 ? `${t} s` : 'Adjugé…'; if (t !== lastTick){ lastTick = t; if (t > 0 && t <= 3){ AU.play('tick', t === 1); el.classList.remove('hot'); void el.offsetWidth; el.classList.add('hot'); } } }
   const sk = canSkip(game); if (sk !== lastSkip){ lastSkip = sk; render(); }
   const ch = document.getElementById('chrono');
   if (ch && game.endsAt && game.status === 'playing'){ const t = Math.max(0, game.endsAt - Date.now()); ch.textContent = `${Math.floor(t/60000)}:${String(Math.floor(t/1000)%60).padStart(2,'0')}`; }
@@ -1431,7 +1464,7 @@ function cellHTML(s,i,landed){
   let inner = '';
   if (c.t === 'pays' || c.t === 'rec'){
     const holders = alive(s).filter(p => tierOf(share(s,p.id,c.r)) >= 0);
-    const band = c.t === 'pays' ? `<span class="band" style="--g:var(--c-${ZONES[c.z].g})">${esc(ZONES[c.z].s)}</span>` : `<span class="band" style="--g:var(--s-rec)">+${esc(fmt(RULE.rec))} × dés</span>`;
+    const band = c.t === 'pays' ? `<span class="band" style="--g:var(--c-${ZONES[c.z].g})">${esc(ZONES[c.z].s)}</span>` : `<span class="band" style="--g:var(--s-rec)">+${esc(fmt(scaled(s,RULE.rec)))} × dés</span>`;
     inner = `${band}<span class="ico">${RES[c.r].i}</span><span class="rn">${esc(RES[c.r].n)}</span><span class="owners">${holders.map(p => `<b style="--c:var(${pcol(p.color)})"></b>`).join('')}</span>`;
   } else if (c.t === 'cont'){
     cls.push('special'); inner = `<span class="ico">${TH.contIco}</span><span class="sl">${TH.contShort}</span><span class="ss">${CONT[c.c].n}</span>`;
@@ -1452,16 +1485,17 @@ function render(){
   if (gid && game && game.status !== 'closed') renderGame(); else renderLobby();
 }
 function rulesHTML(){
-  const dbl = RULE.dbl ? `Un double coûte ${fmt(RULE.dbl)} × sa valeur.` : 'Les doubles ne coûtent rien.';
+  const g = game && game.status !== 'lobby' ? game : null, wide = !g || g.dyn;
+  const dbl = RULE.dbl ? `Un double coûte ${fmt(g ? scaled(g,RULE.dbl) : RULE.dbl)} × sa valeur${wide && !g ? ' (montants fixes réduits à 5-6 joueurs, comme le capital de départ)' : ''}.` : 'Les doubles ne coûtent rien.';
   return `<div class="rules-grid">
     <div><h3>Le but</h3><p>Achète des titres de production, réunis les titres d'une même richesse et encaisse des royalties jusqu'à ruiner tous tes adversaires.</p></div>
     <div><h3>Les titres</h3><p>Chaque richesse est découpée en titres, chacun représentant une part de la production mondiale. Tes parts d'une même richesse s'additionnent.</p></div>
     <div><h3>Les royalties</h3><p>Dès ${TIER_MIN[0]} % d'une richesse, tu touches des royalties quand un joueur s'arrête sur sa case. Paliers : ${TIER_MIN.map((m,k) => m + ' %' + (k === 1 ? ' (monopole)' : '')).join(', ')}, de plus en plus chers.</p></div>
-    <div><h3>Cases pays</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du pays. En fin de tour, tu paies les royalties de la richesse de la case.</p></div>
-    <div><h3>Cases ${esc(TH.rec)}</h3><p>Tu reçois ${fmt(RULE.rec)} × le total des dés, puis tu paies les royalties de la richesse de la case.</p></div>
+    <div><h3>Cases pays</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du pays${wide ? ', ou de la richesse de la case n\'importe où dans le monde' : ''}. En fin de tour, tu paies les royalties de la richesse de la case.</p></div>
+    <div><h3>Cases ${esc(TH.rec)}</h3><p>Tu reçois ${fmt(g ? scaled(g,RULE.rec) : RULE.rec)} × le total des dés, puis tu paies les royalties de la richesse de la case.</p></div>
     <div><h3>Choix continental et mondial</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du continent (sans les États-Unis, la Russie, la Chine ni l'Inde) ou du monde entier après un premier tour, mais seulement pour des richesses que tu possèdes déjà.</p></div>
     <div><h3>Enchères et Joker</h3><p>Après un premier tour du monde, la case Enchères t'oblige à vendre autant de titres que le dé rouge, à partir de ${RULE.aucStart} % de leur prix. Le Joker (${fmt(RULE.jokerPrice)}) t'en dispense une fois.</p></div>
-    <div><h3>Doubles, Douane, Actualité</h3><p>${dbl} La Douane fait passer le tour suivant. L'Actualité fait gagner ou perdre une somme.</p></div>
+    <div><h3>Doubles, Douane, Actualité</h3><p>${dbl} La Douane fait passer le tour suivant${wide ? ' (à 5 joueurs ou plus : elle coûte le prix d\'un double au dé rouge, sans attendre)' : ''}. L'Actualité fait gagner ou perdre une somme.</p></div>
     <div><h3>Transactions</h3><p>À tout moment, échange avec un joueur tous tes titres d'une ou plusieurs richesses, avec ou sans argent.</p></div>
     <div><h3>Faillite et victoire</h3><p>Qui ne peut plus payer fait faillite. Classique : le dernier en jeu gagne. Rapide : titres distribués au départ, fin après deux faillites. Chrono : le plus riche gagne à la fin du temps.</p></div>
   </div>`;
@@ -1508,7 +1542,7 @@ async function joinByCode(code){
 function renderLobby(){
   if (!document.getElementById('lobby')){
     app.innerHTML = `
-    <header class="top"><div class="logo">Négoce <span>Mondial</span><small>Le jeu des richesses de la planète · 2 à 6 joueurs</small></div><div id="acct">${acctHTML()}</div></header>
+    <header class="top"><div class="logo">Négoce <span>Mondial</span><small>Le jeu des richesses de la planète · 2 à 6 joueurs</small></div><div class="hdr-r">${soundBtnsHTML()}<div id="acct">${acctHTML()}</div></div></header>
     <main class="lobby" id="lobby">
       <section class="hero">
         <div>
@@ -1628,7 +1662,7 @@ function renderGame(){
   lastPay = s.pay ? s.pay.seq : 0;
   const modeName = {classic:'Classique', rapide:'Rapide', chrono:'Chrono'}[s.options.mode];
   setHTML('gHead', `<div class="logo">Négoce <span>Mondial</span><small>Partie ${esc(s.code)} · ${modeName}${THEME === 'noir' ? ' · Marché noir' : ''}${s.options.rulesName ? ' · Règles « ' + esc(s.options.rulesName) + ' »' : ''}${s.options.mode === 'chrono' && s.status === 'playing' ? ' · <span id="chrono" class="num"></span> restantes' : ''}</small></div>
-    <div class="hdr-r">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}
+    <div class="hdr-r">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}${soundBtnsHTML()}
       <div class="menuwrap"><button class="btn sm ghost menubtn" data-act="menu" aria-expanded="${menuOpen}" aria-label="Menu">☰</button>
       ${menuOpen ? `<div class="menu" role="menu">
         <button data-act="back" role="menuitem">↩ Toutes les parties</button>
@@ -1648,6 +1682,7 @@ function renderGame(){
   </div>`;
   document.getElementById('board').innerHTML = CELLS.map((_,i) => cellHTML(s, i, !moving && landedNow && s.lastLand && s.lastLand.pos === i)).join('') + center;
   drawMap(document.getElementById('bMap'), s);
+  if (rolling){ AU.play('dice'); FX.diceSpin(); if (s.dice && s.dice[0] === s.dice[1]) setTimeout(() => AU.play('dbl'), 500); }
   setHTML('bctl', `${zoomOn ? '<span class="note">Fais glisser le plateau, touche une case.</span>' : ''}${zoomOn && meP && !meP.out && s.status === 'playing' ? '<button class="btn sm ghost" data-act="center">📍 Mon pion</button>' : ''}<button class="btn sm ${zoomOn ? 'ghost' : 'gold'}" data-act="zoom">${zoomOn ? "🗺️ Vue d'ensemble" : '🔍 Zoomer'}</button>`);
   follow(s, meP, myTurn, false);
   setHTML('sAuction', auctionHTML(s, meP));
@@ -1691,6 +1726,7 @@ function renderGame(){
   const dock = document.getElementById('dock'), dh = tab !== 'jeu' && !lob ? dockHTML(s, meP, myTurn, att) : '';
   dock.hidden = !dh; setHTML('dock', dh);
   coach(s, meP, myTurn);
+  fxDiff(s); autoEnd(s);
   const ev = document.getElementById('evt');
   if (sheetPid && ev && !ev.hidden && ev.querySelector('.sheet')){ const p = byId(s, sheetPid); if (p) ev.innerHTML = sheetHTML(s, p); } else if (ev && ev.hidden) sheetPid = null;
 }
@@ -1755,10 +1791,10 @@ function startMove(m){
   const tick = () => {
     k++; const i = (m.from + k) % N;
     mv.style.transition = `transform ${STEP-20}ms ease-out`; place(i);
-    mv.classList.remove('hop'); void mv.offsetWidth; mv.classList.add('hop');
+    mv.classList.remove('hop'); void mv.offsetWidth; mv.classList.add('hop'); AU.play('hop', k);
     if (zoomOn && (k % 2 === 0 || k === n)) centerOn(i, 'smooth');
     if (k < n) setTimeout(tick, STEP);
-    else setTimeout(() => { mv.remove(); const c = document.getElementById('board').children[m.to]; if (c){ c.classList.remove('landed'); void c.offsetWidth; c.classList.add('landed'); } moveDone(); }, STEP + 120);
+    else setTimeout(() => { mv.remove(); const c = document.getElementById('board').children[m.to]; if (c){ c.classList.remove('landed'); void c.offsetWidth; c.classList.add('landed'); } AU.play('land'); moveDone(); }, STEP + 120);
   };
   setTimeout(tick, 480);
   setTimeout(() => { if (moving) moveDone(); }, 480 + n*STEP + 1500);
@@ -1820,9 +1856,9 @@ function tipHTML(s, i){
   let body = '';
   if (c.t === 'pays' || c.t === 'rec'){
     const hold = alive(s).map(p => ({p, sh: share(s,p.id,c.r)})).filter(x => x.sh > 0).sort((a,b) => b.sh - a.sh);
-    const free = c.t === 'pays' ? ZONE_T[c.z].filter(id => !s.owners[id]).length : 0;
-    body = `<div class="tt">${c.t === 'pays' ? esc(ZONES[c.z].n) : esc(TH.rec) + ' · +' + fmt(RULE.rec) + ' × dés'}</div><div class="tr">${RES[c.r].i} ${esc(RES[c.r].n)}</div>
-      ${c.t === 'pays' ? `<div class="tn">${free} titre${free>1?'s':''} libre${free>1?'s':''} sur ${ZONE_T[c.z].length}</div>` : ''}
+    const free = c.t === 'pays' ? (s.dyn ? [...new Set([...ZONE_T[c.z], ...RES_T[c.r]])] : ZONE_T[c.z]).filter(id => !s.owners[id]).length : 0;
+    body = `<div class="tt">${c.t === 'pays' ? esc(ZONES[c.z].n) : esc(TH.rec) + ' · +' + fmt(scaled(s,RULE.rec)) + ' × dés'}</div><div class="tr">${RES[c.r].i} ${esc(RES[c.r].n)}</div>
+      ${c.t === 'pays' ? `<div class="tn">${free} titre${free>1?'s':''} libre${free>1?'s':''}${s.dyn ? ' (pays + ' + esc(RES[c.r].n) + ' partout)' : ' sur ' + ZONE_T[c.z].length}</div>` : ''}
       <div class="tn">${hold.length ? hold.map(x => `${pawn(x.p)} ${esc(x.p.name)} ${x.sh} %${tierOf(x.sh) >= 0 ? ' → ' + fmt(tierRoy(c.r, tierOf(x.sh))) : ''}`).join('<br>') : 'Aucune royalty pour l\'instant'}</div>`;
   } else if (c.t === 'cont') body = `<div class="tt">${TH.contIco} ${esc(TH.cont)} · ${esc(CONT[c.c].n)}</div>`;
   else body = `<div class="tt">${SPEC[c.t].i} ${esc(SPEC[c.t].l)}</div>`;
@@ -1831,6 +1867,7 @@ function tipHTML(s, i){
 
 function showCard(s, card){
   const ev = document.getElementById('evt'); if (!ev || card.d == null) return;
+  AU.play('card');
   const by = byId(s, card.by), plus = card.d > 0;
   ev.innerHTML = `<div class="evc" role="dialog" aria-label="${esc(SPEC.actu.l)}"><div class="eh"><span>${SPEC.actu.i}</span>${esc(SPEC.actu.l)}</div>
     <div class="eb"><div class="et">${esc(card.t)}</div><div class="ea ${plus ? 'plus' : 'minus'}">${plus ? '+' : '−'} ${fmt(Math.abs(card.d))}</div>
@@ -1948,8 +1985,8 @@ function actionHTML(s, meP, c, myTurn){
   if (s.phase === 'roll'){
     return `<section class="panel action mine"><h2>À toi de jouer</h2>
       <p class="note">Liquidités : <b class="num">${fmt(meP.cash)}</b> · ${meP.laps ? `${meP.laps} tour${meP.laps>1?'s':''} du monde` : 'premier tour du monde en cours'}</p>
-      <button class="btn gold big" data-act="roll" ${dis}>🎲 Lancer les dés</button>
-      ${RULE.dbl ? `<p class="note">Attention : un double coûte ${fmt(RULE.dbl)} × sa valeur.</p>` : ''}</section>`;
+      <button class="btn gold big ready" data-act="roll" ${dis}>🎲 Lancer les dés</button>
+      ${RULE.dbl ? `<p class="note">Attention : un double coûte ${fmt(scaled(s,RULE.dbl))} × sa valeur.</p>` : ''}</section>`;
   }
   if (s.phase === 'buy'){
     const b = s.buy, list = eligible(s, meP).sort((x,y) => TITLES[y].pct - TITLES[x].pct);
@@ -1958,7 +1995,7 @@ function actionHTML(s, meP, c, myTurn){
     const title = b.mode === 'zone' ? ZONES[b.zone].n : b.mode === 'cont' ? `${TH.cont} · ${CONT[b.cont].n}` : SPEC.mondial.l;
     const total = cart.reduce((t,id) => t + TITLES[id].price, 0), after = meP.cash - total;
     const rows = list.map(id => { const t = TITLES[id], on = cart.includes(id), dim = !on && (cart.length >= b.left || t.price > after);
-      return `<div class="trow pickable${on ? ' incart' : ''}${dim ? ' dim' : ''}" data-act="cartT" data-id="${id}" role="button" tabindex="0" aria-pressed="${on}"><span class="tn"><span class="ck">${on ? '✓' : ''}</span>${rchip(t.r)} ${b.mode !== 'zone' ? `<span class="note">${esc(ZONES[t.z].n)}</span>` : `${share(s,me.id,t.r) ? `<span class="note">tu as ${share(s,me.id,t.r)} %</span>` : ''}`}</span><span class="pct">${t.pct} %</span><span class="num">${fmt(t.price)}</span></div>`; }).join('');
+      return `<div class="trow pickable${on ? ' incart' : ''}${dim ? ' dim' : ''}" data-act="cartT" data-id="${id}" role="button" tabindex="0" aria-pressed="${on}"><span class="tn"><span class="ck">${on ? '✓' : ''}</span>${rchip(t.r)} ${b.mode !== 'zone' || t.z !== b.zone ? `<span class="note">${esc(ZONES[t.z].n)}${share(s,me.id,t.r) ? ' · tu as ' + share(s,me.id,t.r) + ' %' : ''}</span>` : `${share(s,me.id,t.r) ? `<span class="note">tu as ${share(s,me.id,t.r)} %</span>` : ''}`}</span><span class="pct">${t.pct} %</span><span class="num">${fmt(t.price)}</span></div>`; }).join('');
     const byRes = {}; cart.forEach(id => { const r = TITLES[id].r; byRes[r] = (byRes[r]||0) + TITLES[id].pct; });
     const impact = Object.keys(byRes).map(r => { const a0 = share(s,me.id,r), a1 = a0 + byRes[r], t0 = tierOf(a0), t1 = tierOf(a1);
       return `<div class="imp">${RES[r].i} ${esc(RES[r].n)} : ${a0} % → <b class="${t1 > t0 ? 'up' : ''}">${a1} %</b> · ${t1 < 0 ? `pas encore de royalties (il faut ${TIER_MIN[0]} %)` : `royalty ${fmt(tierRoy(r,t1))}${t1 > t0 ? ' · nouveau palier !' : ''}`}</div>`; }).join('');
@@ -1988,7 +2025,7 @@ function actionHTML(s, meP, c, myTurn){
   return `<section class="panel action mine"><h2>${esc(cellLabel(meP.pos))}</h2>
     <p class="note">Liquidités : <b class="num">${fmt(meP.cash)}</b></p>
     ${s.jokerOffer ? `<button class="btn gold" data-act="buyJoker" ${dis} ${meP.cash < RULE.jokerPrice ? 'disabled' : ''}>${SPEC.joker.i} ${THEME === 'noir' ? 'Engager un avocat' : 'Acheter un Joker'} · ${fmt(RULE.jokerPrice)}</button>` : ''}
-    <button class="btn big" data-act="end" ${dis}>Terminer le tour</button></section>`;
+    <button class="btn big${s.jokerOffer ? '' : ' autoend'}" data-act="end" ${dis}>Terminer le tour</button>${s.jokerOffer ? '' : '<p class="note">Rien à décider ici : ton tour se termine tout seul.</p>'}</section>`;
 }
 
 function auctionHTML(s, meP){
@@ -2056,22 +2093,27 @@ function resPanel(s,r){
     <div class="label">Les ${RES_T[r].length} titres ${nm} <span class="note">· pays, part, prix ou propriétaire</span></div>
     <div class="list">${RES_T[r].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>`;
 }
+function douaneTxt(s){ return `À partir de 5 joueurs en lice, ${esc(SPEC.douane.l)} ne fait plus passer de tour : on paie ${fmt(scaled(s,RULE.dbl))} × le dé rouge.`; }
 function detailHTML(s){
   const c = CELLS[sel];
   if (c.t === 'pays'){
-    const free = ZONE_T[c.z].filter(id => !s.owners[id]).length;
+    const free = ZONE_T[c.z].filter(id => !s.owners[id]).length, wide = s.dyn || s.status === 'lobby';
+    const elsewhere = wide ? RES_T[c.r].filter(id => TITLES[id].z !== c.z) : [], freeEl = elsewhere.filter(id => !s.owners[id]).length;
     return `<section class="panel cellinfo"><div class="label">Case pays · ${CONT[ZONES[c.z].g].n}</div><h2>${esc(ZONES[c.z].n)} <span class="rchipwrap">${rchip(c.r)}</span></h2>
-      <p class="note">En t'arrêtant ici : 1. tu peux acheter jusqu'à ${RULE.maxBuy} titres de ce pays, 2. puis tu paies les royalties ${esc(RES[c.r].n)} (la richesse de la case) à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>
+      <p class="note">En t'arrêtant ici : 1. tu peux acheter jusqu'à ${RULE.maxBuy} titres de ce pays${wide ? ` ou de ${esc(RES[c.r].n)} n'importe où dans le monde` : ''}, 2. puis tu paies les royalties ${esc(RES[c.r].n)} (la richesse de la case) à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>
       ${s.status === 'playing' ? payHereHTML(s,c.r) : ''}
       <h3 class="sub">1 · Titres à vendre dans ce pays <span class="note">${free}/${ZONE_T[c.z].length} encore libres</span></h3>
       <p class="note">Un titre = une part de la production mondiale d'une richesse. À droite : son prix s'il est libre, sinon le pion de son propriétaire.</p>
       <div class="list zone">${ZONE_T[c.z].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>
+      ${elsewhere.length ? `<h3 class="sub">+ ${RES[c.r].i} ${esc(RES[c.r].n)} ailleurs dans le monde <span class="note">${freeEl}/${elsewhere.length} encore libres</span></h3>
+      <div class="list zone">${elsewhere.slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>` : ''}
       <h3 class="sub">2 · Royalties de la case : ${RES[c.r].i} ${esc(RES[c.r].n)}</h3>${resPanel(s,c.r)}</section>`;
   }
-  if (c.t === 'rec') return `<section class="panel cellinfo"><div class="label">Case ${TH.rec}</div><h2>${RES[c.r].i} ${esc(RES[c.r].n)}</h2><p class="note">En t'arrêtant ici : 1. tu reçois ${fmt(RULE.rec)} × le total des dés, 2. puis tu paies les royalties ${esc(RES[c.r].n)} à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>${s.status === 'playing' ? payHereHTML(s,c.r) : ''}<h3 class="sub">Royalties de la case : ${esc(RES[c.r].n)}</h3>${resPanel(s,c.r)}</section>`;
+  if (c.t === 'rec') return `<section class="panel cellinfo"><div class="label">Case ${TH.rec}</div><h2>${RES[c.r].i} ${esc(RES[c.r].n)}</h2><p class="note">En t'arrêtant ici : 1. tu reçois ${fmt(scaled(s,RULE.rec))} × le total des dés, 2. puis tu paies les royalties ${esc(RES[c.r].n)} à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>${s.status === 'playing' ? payHereHTML(s,c.r) : ''}<h3 class="sub">Royalties de la case : ${esc(RES[c.r].n)}</h3>${resPanel(s,c.r)}</section>`;
   if (c.t === 'cont') return `<section class="panel"><div class="label">Case</div><h2>${TH.contIco} ${TH.cont} · ${CONT[c.c].n}</h2><p class="note">Achète jusqu'à ${RULE.maxBuy} titres de ce continent${CONT[c.c].excl.length ? ` (hors ${CONT[c.c].excl.map(z => ZONES[z].n).join(' et ')})` : ''}, seulement pour des richesses que tu possèdes déjà.</p></section>`;
   const S = SPEC[c.t];
-  return `<section class="panel"><div class="label">Case</div><h2>${S.i} ${S.l}</h2><p class="note">${S.d}</p></section>`;
+  const d = c.t === 'douane' && s.status === 'playing' && douaneTax(s) ? douaneTxt(s) : S.d;
+  return `<section class="panel"><div class="label">Case</div><h2>${S.i} ${S.l}</h2><p class="note">${d}</p></section>`;
 }
 
 function mineHTML(s, meP){
@@ -2150,7 +2192,7 @@ function tips(){
   return [
     {id:'welcome', when:() => true, target:'.cashpill', t:'Bienvenue !', x:"Le but : acheter des titres de production, réunir les parts d'une même richesse et toucher des royalties jusqu'à ruiner tes adversaires. Ton argent est toujours affiché ici."},
     {id:'zoom', when:() => zoomOn, target:'#bctl', t:'Le plateau', x:"La caméra suit le pion qui vient de bouger. Fais glisser le plateau du doigt et touche une case pour voir son détail. « Mon pion » te recentre, « Vue d'ensemble » affiche tout le plateau."},
-    {id:'roll', when:(s,m,my) => my && s.phase === 'roll', target:'[data-act="roll"]', t:'À toi de jouer', x:"Lance les dés pour avancer. Le dé rouge sert aussi pour les " + (noir ? 'saisies' : 'enchères') + ". " + (RULE.dbl ? "Attention : un double coûte " + fmt(RULE.dbl) + " × sa valeur." : "")},
+    {id:'roll', when:(s,m,my) => my && s.phase === 'roll', target:'[data-act="roll"]', t:'À toi de jouer', x:"Lance les dés pour avancer. Le dé rouge sert aussi pour les " + (noir ? 'saisies' : 'enchères') + ". " + (RULE.dbl ? "Attention : un double coûte " + fmt(scaled(game,RULE.dbl)) + " × sa valeur." : "")},
     {id:'buy', when:(s,m,my) => my && s.phase === 'buy', target:'#sAction', t:'Acheter des titres', x:"Chaque titre est une part, en %, de la production mondiale d'une richesse. Coche jusqu'à " + RULE.maxBuy + " titres : le total et l'effet sur tes parts s'affichent, et rien n'est acheté avant que tu valides. Dès " + TIER_MIN[0] + " % d'une richesse, les autres te paient des royalties quand ils tombent sur ses cases. Quand tu termines, tu paies les royalties de cette case aux autres."},
     {id:'pick', when:(s,m,my) => my && s.phase === 'pick', target:'#sAction', t: SPEC.ench.l, x:`Le dé rouge t'oblige à mettre ce nombre de titres aux enchères. Sacrifie les moins utiles. ${noir ? 'Un avocat' : 'Un Joker'} t'en dispense une fois.`},
     {id:'auction', when:(s) => s.phase === 'auction' && s.auction && s.auction.seller !== me.id, target:'#sAuction', t:'Les enchères', x:"Tout le monde enchérit en direct. Chaque offre relance un compte à rebours de " + RULE.aucSecs + " secondes, et la dernière offre l'emporte. Bonne occasion de récupérer des parts qui te manquent."},
@@ -2554,6 +2596,9 @@ app.addEventListener('click', e => {
     case 'shareLink': { const el = document.getElementById('invLink'); if (el && navigator.share) navigator.share({title:'Négoce Mondial', text:`Rejoins ma partie de Négoce Mondial (code ${game ? game.code : ''})`, url: el.value}).catch(() => {}); break; }
     case 'joinCode': joinByCode(); break;
     case 'hostOpts': hostOpts = !hostOpts; render(); break;
+    case 'snd': { const m = AU.pref.music, f = AU.pref.sfx;
+      if (m && f) AU.toggle('music'); else if (f){ AU.toggle('sfx'); } else { AU.toggle('music'); AU.toggle('sfx'); setTimeout(() => AU.play('coin'), 120); }
+      render(); toast(AU.pref.music ? 'Musique et bruitages activés' : AU.pref.sfx ? 'Musique coupée, bruitages gardés' : 'Son coupé'); break; }
     case 'createOpen': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = false; if (i) i.hidden = true; const m = document.getElementById('mode'); if (m) m.focus(); } break; }
     case 'createClose': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = true; if (i) i.hidden = false; } break; }
     case 'open': openGame(id); break;
@@ -2643,6 +2688,262 @@ app.addEventListener('input', e => {
   if (send && game){ send.disabled = busy || !canWrite || !draftOk(game, byId(game, me.id)); }
 });
 app.addEventListener('focusout', e => { if (e.target.id === 'tGive' || e.target.id === 'tTake') setTimeout(() => { const ae = document.activeElement; if (game && !(ae && ae.tagName === 'INPUT' && (ae.id === 'tGive' || ae.id === 'tTake'))) render(); }, 0); });
+
+/* =================== AMBIANCE : MUSIQUE, BRUITAGES, ANIMATIONS =================== */
+/* Tout est synthétisé en direct (Web Audio) : aucun fichier son à héberger. Le navigateur n'autorise le son
+   qu'après un premier geste du joueur, d'où le démarrage au premier clic. */
+const AU = (() => {
+  const pref = {music: store.get('nm.music') !== 'off', sfx: store.get('nm.sfx') !== 'off'};
+  let ctx = null, master = null, musicBus = null, sfxBus = null, echo = null, noiseBuf = null;
+  const ok = () => !!ctx && ctx.state === 'running';
+  function init(){
+    if (ctx){ if (ctx.state === 'suspended' && document.visibilityState !== 'hidden') ctx.resume().catch(() => {}); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    try { ctx = new AC(); } catch(e){ ctx = null; return; }
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = .85; master.connect(comp);
+    musicBus = ctx.createGain(); musicBus.gain.value = pref.music ? .55 : 0; musicBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = pref.sfx ? .9 : 0; sfxBus.connect(master);
+    /* écho léger pour les notes pincées de la musique */
+    echo = ctx.createDelay(1); echo.delayTime.value = .375;
+    const fb = ctx.createGain(); fb.gain.value = .32; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
+    const wet = ctx.createGain(); wet.gain.value = .35;
+    echo.connect(lp); lp.connect(fb); fb.connect(echo); lp.connect(wet); wet.connect(musicBus);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+    if (pref.music) Music.start();
+  }
+  function tone(f, t, dur, o = {}){
+    if (!ctx) return;
+    const osc = ctx.createOscillator(), g = ctx.createGain(), bus = o.bus || sfxBus;
+    osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(f, t);
+    if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + dur);
+    if (o.detune) osc.detune.value = o.detune;
+    const a = o.a || .005, v = o.v || .2;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    let out = g;
+    if (o.lp){ const f2 = ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = o.lp; g.connect(f2); out = f2; }
+    osc.connect(g); out.connect(bus); if (o.echo && echo) out.connect(echo);
+    osc.start(t); osc.stop(t + dur + .05);
+  }
+  function noise(t, dur, o = {}){
+    if (!ctx) return;
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = noiseBuf; f.type = o.type || 'bandpass'; f.frequency.setValueAtTime(o.f || 2000, t); f.Q.value = o.q || 1;
+    if (o.to) f.frequency.exponentialRampToValueAtTime(o.to, t + dur);
+    const v = o.v || .2; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + (o.a || .003)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(o.bus || sfxBus);
+    src.start(t, Math.random()*.5); src.stop(t + dur + .05);
+  }
+  const N = n => 440 * Math.pow(2, (n - 69)/12); /* numéro MIDI -> Hz */
+  const now = () => ctx.currentTime + .01;
+  const SFX = {
+    dice(){ const t = now(); for (let i = 0; i < 7; i++){ const k = t + i*.055 + Math.random()*.03; noise(k, .05, {f: 2500 + Math.random()*2500, q: 6, v: .35}); tone(300 + Math.random()*500, k, .04, {type:'square', v:.03}); }
+      noise(t + .45, .09, {f: 900, q: 3, v: .4}); tone(180, t + .45, .1, {v:.2, to: 90}); },
+    hop(k){ const sc = [0,2,4,7,9]; const n = 72 + sc[k % 5] + 12*Math.floor(k/5 % 2); tone(N(n), now(), .09, {type:'triangle', v:.09}); },
+    land(){ const t = now(); tone(150, t, .22, {v:.32, to: 60}); noise(t, .06, {f: 1200, q: 2, v: .12}); },
+    coin(big){ const t = now(); const seq = big ? [88, 93, 88, 93, 100] : [88, 93]; seq.forEach((n,i) => { tone(N(n), t + i*.07, .35, {type:'sine', v:.12}); tone(N(n+12), t + i*.07, .2, {type:'sine', v:.04}); });
+      noise(t, .12, {type:'highpass', f: 6000, v: .08}); },
+    pay(){ const t = now(); [76, 72, 67].forEach((n,i) => tone(N(n), t + i*.09, .22, {type:'triangle', v:.12})); tone(110, t + .2, .3, {type:'sawtooth', v:.05, lp: 500, to: 70}); },
+    buy(n){ const t = now(); noise(t, .08, {type:'lowpass', f: 600, v: .5}); tone(90, t, .15, {v:.35, to: 50});
+      [72, 76, 79, 84].slice(0, Math.min(4, 1 + (n||1))).forEach((m,i) => tone(N(m), t + .08 + i*.06, .3, {type:'triangle', v:.1})); },
+    gavel(){ const t = now(); [0, .16].forEach(d => { noise(t + d, .07, {f: 1400, q: 4, v: .5}); tone(620, t + d, .08, {v:.18, to: 380}); }); },
+    bid(){ const t = now(); tone(N(84), t, .08, {type:'square', v:.05, lp: 3000}); tone(N(91), t + .05, .1, {type:'square', v:.04, lp: 3000}); },
+    tick(last){ tone(last ? 1760 : 1320, now(), .05, {type:'square', v:.04, lp: 4000}); },
+    card(){ const t = now(); noise(t, .35, {f: 400, to: 4000, q: 1.5, v: .25}); tone(N(79), t + .25, .3, {type:'triangle', v:.08}); },
+    turn(){ const t = now(); [67, 71, 74, 79].forEach((n,i) => tone(N(n), t + i*.09, .5, {type:'triangle', v:.13})); tone(N(91), t + .36, .7, {type:'sine', v:.06}); },
+    dbl(){ const t = now(); [0, .18, .36].forEach(d => { tone(N(81), t + d, .12, {type:'square', v:.06, lp: 2500}); tone(N(76), t + d + .09, .1, {type:'square', v:.05, lp: 2500}); }); },
+    other(){ tone(N(79), now(), .12, {type:'triangle', v:.05}); },
+    bankrupt(){ const t = now(); [64, 63, 62, 58].forEach((n,i) => tone(N(n - 12), t + i*.28, i === 3 ? .9 : .3, {type:'sawtooth', v:.09, lp: 900, to: i === 3 ? N(n - 14) : undefined})); },
+    win(){ const t = now(); const m = [[72,0],[76,.14],[79,.28],[84,.42],[79,.62],[84,.76]]; m.forEach(([n,d]) => tone(N(n), t + d, .4, {type:'square', v:.07, lp: 3500}));
+      [60, 64, 67, 72].forEach(n => tone(N(n), t + .9, 1.6, {type:'sawtooth', v:.05, lp: 2000, a:.05})); noise(t + .9, 1.2, {type:'highpass', f: 7000, v: .06}); },
+    tier(){ const t = now(); [72, 79, 84, 88].forEach((n,i) => tone(N(n), t + i*.06, .4, {type:'sine', v:.08})); }
+  };
+  /* ---- Musique générative : boucle de 4 accords, couches qui s'ajoutent selon l'action ---- */
+  const Music = (() => {
+    const CH = [[57,60,64],[53,57,60],[48,52,55],[55,59,62]]; /* La m, Fa, Do, Sol */
+    const PENTA = [69,72,74,76,79,81,84];
+    let timer = null, step = 0, next = 0, mood = 0, bar = 0;
+    function sched(){
+      if (!ok()) return;
+      const bpm = mood === 2 ? 132 : mood === 1 ? 108 : 96, sd = 60/bpm/2; /* croches */
+      while (next < ctx.currentTime + .15){
+        const t = next, s8 = step % 8, chord = CH[bar % 4];
+        if (s8 === 0){
+          chord.forEach(n => { tone(N(n), t, sd*8.2, {type:'sawtooth', v:.022, lp: 700, a: .35, bus: musicBus, detune: -7}); tone(N(n), t, sd*8.2, {type:'sawtooth', v:.022, lp: 700, a: .35, bus: musicBus, detune: 7}); });
+          tone(N(chord[0] - 12), t, sd*3.5, {type:'triangle', v:.13, bus: musicBus, lp: 600});
+        }
+        if (s8 === 3 || s8 === 6) tone(N(chord[s8 === 3 ? 0 : 2] - 12), t, sd*1.6, {type:'triangle', v:.09, bus: musicBus, lp: 600});
+        const pr = mood === 2 ? .7 : mood === 1 ? .55 : .38;
+        if (Math.random() < pr){ const pool = PENTA.filter(n => mood === 2 || n < 82); const n = pool[Math.floor(Math.random()*pool.length)]; tone(N(n), t, sd*1.8, {type:'triangle', v: mood ? .06 : .045, bus: musicBus, echo: true}); }
+        if (mood >= 1){ if (s8 % 4 === 0) tone(110, t, .18, {v:.18, to: 45, bus: musicBus}); noise(t, .04, {type:'highpass', f: 7000, v: s8 % 2 ? .025 : .045, bus: musicBus}); }
+        if (mood === 2){ noise(t + sd/2, .03, {type:'highpass', f: 8000, v: .03, bus: musicBus}); if (s8 === 4) noise(t, .12, {f: 1800, q: 1, v: .08, bus: musicBus}); }
+        next += sd; step++; if (step % 8 === 0) bar++;
+      }
+    }
+    return {
+      start(){ if (timer || !ctx) return; next = ctx.currentTime + .1; step = 0; timer = setInterval(sched, 40); },
+      stop(){ clearInterval(timer); timer = null; },
+      mood(m){ mood = m; }
+    };
+  })();
+  document.addEventListener('visibilitychange', () => { if (!ctx) return; if (document.visibilityState === 'hidden') ctx.suspend().catch(() => {}); else ctx.resume().catch(() => {}); });
+  ['pointerdown','keydown'].forEach(ev => document.addEventListener(ev, init, {passive: true}));
+  return {
+    play(name, ...a){ if (!pref.sfx || !ok() || !SFX[name]) return; try { SFX[name](...a); } catch(e){} },
+    mood(m){ Music.mood(m); },
+    pref,
+    toggle(k){
+      pref[k] = !pref[k]; store.set('nm.' + k, pref[k] ? null : 'off'); init();
+      if (ctx){ const bus = k === 'music' ? musicBus : sfxBus; bus.gain.setTargetAtTime(pref[k] ? (k === 'music' ? .55 : .9) : 0, ctx.currentTime, .08);
+        if (k === 'music'){ if (pref.music) Music.start(); else setTimeout(() => { if (!pref.music) Music.stop(); }, 400); } }
+    }
+  };
+})();
+/* Un seul bouton, trois états : musique + bruitages → bruitages seuls → silence. */
+function soundBtnsHTML(){
+  const m = AU.pref.music, f = AU.pref.sfx, ico = m && f ? '🔊' : f ? '🔉' : m ? '🎵' : '🔇';
+  const lbl = m && f ? 'Musique et bruitages (toucher : bruitages seuls)' : f ? 'Bruitages seuls (toucher : silence)' : m ? 'Musique seule (toucher : tout couper)' : 'Son coupé (toucher : musique et bruitages)';
+  return `<button class="btn sm ghost sndbtn${m || f ? '' : ' off'}" data-act="snd" title="${lbl}" aria-label="${lbl}">${ico}</button>`;
+}
+
+/* ---- Effets visuels ---- */
+const FX = {
+  float(el, text, kind){
+    if (!el || reducedMotion()) return;
+    const r = el.getBoundingClientRect(); if (!r.width || r.bottom < 0 || r.top > innerHeight) return;
+    const f = document.createElement('div'); f.className = 'floater ' + (kind || ''); f.textContent = text;
+    f.style.left = (r.left + r.width/2) + 'px'; f.style.top = (r.top + 4) + 'px';
+    document.body.appendChild(f); setTimeout(() => f.remove(), 1700);
+  },
+  bump(el){ if (!el || reducedMotion()) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); },
+  banner(text, sub){
+    if (reducedMotion()) return;
+    const old = document.querySelector('.turnban'); if (old) old.remove();
+    const b = document.createElement('div'); b.className = 'turnban'; b.innerHTML = `<b>${esc(text)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}`;
+    document.body.appendChild(b); setTimeout(() => b.remove(), 2100);
+  },
+  shake(){ const b = document.getElementById('board'); if (!b || reducedMotion()) return; b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); },
+  diceSpin(){
+    const ds = document.querySelectorAll('#board .dice .die'); if (!ds.length || reducedMotion()) return;
+    const finals = [...ds].map(d => d.innerHTML); let k = 0;
+    const iv = setInterval(() => {
+      ds.forEach(d => { const v = 1 + Math.floor(Math.random()*6); let h = ''; for (let i = 0; i < 9; i++) h += `<i class="${(PIPS[v]||[]).includes(i) ? 'on' : ''}"></i>`; if (d.isConnected) d.innerHTML = h; });
+      if (++k >= 7){ clearInterval(iv); ds.forEach((d,i) => { if (d.isConnected) d.innerHTML = finals[i]; }); }
+    }, 65);
+  },
+  confetti(){
+    if (reducedMotion()) return;
+    const c = document.createElement('canvas'); c.className = 'confetti'; document.body.appendChild(c);
+    const W = c.width = innerWidth, H = c.height = innerHeight, x = c.getContext('2d');
+    const cols = ['#E23B3B','#2C7BE5','#21A04A','#9A4FD6','#F08A00','#11A3A0','#F6B932'];
+    const P = Array.from({length: 160}, () => ({x: Math.random()*W, y: -20 - Math.random()*H*.6, vx: (Math.random() - .5)*2.4, vy: 2 + Math.random()*3, r: Math.random()*Math.PI, vr: (Math.random() - .5)*.3, s: 6 + Math.random()*7, c: cols[Math.floor(Math.random()*cols.length)]}));
+    const t0 = performance.now();
+    (function fr(t){
+      x.clearRect(0,0,W,H);
+      P.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .03; p.r += p.vr; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s/2, -p.s/4, p.s, p.s/2); x.restore(); });
+      if (t - t0 < 4500) requestAnimationFrame(fr); else c.remove();
+    })(t0);
+  },
+  cellFlash(i, cls){ const b = document.getElementById('board'), c = b && b.children[i]; if (!c || reducedMotion()) return; c.classList.remove(cls); void c.offsetWidth; c.classList.add(cls); setTimeout(() => c.classList.remove(cls), 1300); }
+};
+
+/* ---- Routes commerciales : des cargos (points lumineux) relient les pays où chaque joueur possède des titres ---- */
+const Routes = (() => {
+  let cv = null, raf = null, routes = [], last = 0;
+  function build(s){
+    routes = [];
+    if (!s || s.status !== 'playing') return;
+    alive(s).forEach((p, k) => {
+      const zs = Object.keys(ZONES).filter(z => ZONE_T[z].some(id => s.owners[id] === p.id)).sort((a,b) => ZONES[a].lon - ZONES[b].lon);
+      const col = getComputedStyle(document.documentElement).getPropertyValue(pcol(p.color)).trim() || '#fff';
+      for (let i = 0; i + 1 < zs.length; i++) routes.push({a: zs[i], b: zs[i+1], col, ph: Math.random(), sp: .00012 + Math.random()*.00008, bend: (k % 2 ? 1 : -1)*(.12 + .05*(i % 3))});
+    });
+  }
+  function frame(t){
+    raf = requestAnimationFrame(frame);
+    if (t - last < 33) return; last = t;
+    const v = document.getElementById('bview'), m = document.getElementById('bMap');
+    if (!v || !m || document.visibilityState === 'hidden'){ if (cv) cv.style.display = 'none'; return; }
+    if (!cv || !cv.isConnected){ cv = document.createElement('canvas'); cv.className = 'routes'; v.appendChild(cv); }
+    const vr = v.getBoundingClientRect(), r = m.getBoundingClientRect();
+    if (!r.width){ cv.style.display = 'none'; return; }
+    cv.style.display = '';
+    const dpr = Math.min(2, window.devicePixelRatio || 1), w = r.width, h = r.height;
+    if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px'; }
+    cv.style.transform = `translate(${r.left - vr.left + v.scrollLeft}px, ${r.top - vr.top + v.scrollTop}px)`;
+    const x = cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+    const P = z => [(ZONES[z].lon + 168)/360*w, (76 - ZONES[z].lat)/126*h];
+    routes.forEach(R => {
+      const [x1,y1] = P(R.a), [x2,y2] = P(R.b), mx = (x1+x2)/2 - (y2-y1)*R.bend, my = (y1+y2)/2 + (x2-x1)*R.bend;
+      x.strokeStyle = R.col; x.globalAlpha = .28; x.lineWidth = 1.2; x.setLineDash([3,4]);
+      x.beginPath(); x.moveTo(x1,y1); x.quadraticCurveTo(mx,my,x2,y2); x.stroke(); x.setLineDash([]);
+      const u = (R.ph + t*R.sp) % 1, q = u < .5 ? u*2 : 2 - u*2; /* aller-retour */
+      const px = (1-q)*(1-q)*x1 + 2*(1-q)*q*mx + q*q*x2, py = (1-q)*(1-q)*y1 + 2*(1-q)*q*my + q*q*y2;
+      x.globalAlpha = .95; x.fillStyle = R.col; x.beginPath(); x.arc(px, py, 2.6, 0, Math.PI*2); x.fill();
+      x.globalAlpha = .35; x.beginPath(); x.arc(px, py, 5.5, 0, Math.PI*2); x.fill();
+    });
+    x.globalAlpha = 1;
+  }
+  return {
+    update(s){ build(s); if (!raf && !reducedMotion()) raf = requestAnimationFrame(frame); },
+    stop(){ if (raf) cancelAnimationFrame(raf); raf = null; if (cv) cv.remove(); cv = null; }
+  };
+})();
+
+/* ---- Ce qui a changé depuis le dernier rendu : sons et animations, identiques sur tous les écrans ---- */
+let fxPrev = null, routesKey = null, autoEndKey = null, autoEndTimer = null;
+function fxDiff(s){
+  const meP = byId(s, me.id), playing = s.status === 'playing', c = playing ? cur(s) : null, myTurn = !!(c && meP && c.id === me.id);
+  AU.mood(!playing ? 0 : s.phase === 'auction' ? 2 : myTurn ? 1 : 0);
+  const ownKey = JSON.stringify(s.owners || {}) + '|' + s.players.map(p => p.out ? 0 : 1).join('');
+  if (ownKey !== routesKey){ routesKey = ownKey; Routes.update(s); }
+  const snap = {gid, status: s.status, turnId: c ? c.id : null, phase: s.phase, round: s.round,
+    cash: Object.fromEntries(s.players.map(p => [p.id, p.cash])), nOwned: Object.keys(s.owners || {}).length,
+    tiers: meP ? Object.keys(RES).filter(r => tierOf(share(s, me.id, r)) >= 0).map(r => r + tierOf(share(s, me.id, r))).join(',') : '',
+    bk: s.bankrupts || 0, aTick: s.auction ? (s.auction.i + ':' + s.auction.tick) : null, aBidder: s.auction ? s.auction.bidder : null, aOn: !!s.auction};
+  const P = fxPrev; fxPrev = snap;
+  if (!P || P.gid !== gid) return;
+  /* argent : bulles « + / − » au-dessus des liquidités et des fiches joueurs */
+  s.players.forEach(p => {
+    const d = p.cash - (P.cash[p.id] ?? p.cash); if (!d) return;
+    const txt = (d > 0 ? '+ ' : '− ') + fmt(Math.abs(d)), kind = d > 0 ? 'plus' : 'minus';
+    const row = document.querySelector(`#sPlayers .pl[data-id="${CSS.escape(p.id)}"]`);
+    setTimeout(() => {
+      if (p.id === me.id){ const pill = document.querySelector('.cashpill'); FX.float(pill, txt, kind); FX.bump(pill); }
+      FX.float(row && row.querySelector('.cash'), txt, kind);
+    }, moving ? 1200 : 150);
+  });
+  const myD = meP ? meP.cash - (P.cash[me.id] ?? meP.cash) : 0;
+  if (playing && P.turnId !== snap.turnId && myTurn && !meP.out){ setTimeout(() => { AU.play('turn'); FX.banner('À toi de jouer !', `${fmt(meP.cash)} en caisse`); }, moving ? 1400 : 200); }
+  else if (playing && P.turnId !== snap.turnId) AU.play('other');
+  const later = (f) => setTimeout(f, moving ? 1300 : 0);
+  const bought = snap.nOwned > P.nOwned && P.phase !== 'auction';
+  if (bought){ const n = snap.nOwned - P.nOwned, pos = c ? c.pos : null; AU.play('buy', n); if (pos != null) FX.cellFlash(pos, 'bought'); }
+  if (meP && snap.tiers !== P.tiers && snap.tiers.length >= P.tiers.length && snap.tiers.split(',').some(x => x && !P.tiers.split(',').includes(x))) setTimeout(() => { AU.play('tier'); FX.banner('Nouveau palier de royalties !', ''); }, 700);
+  if (snap.aOn && !P.aOn) AU.play('gavel');
+  else if (snap.aOn && snap.aBidder && snap.aBidder !== P.aBidder) AU.play('bid');
+  if (P.aOn && (snap.aTick ? snap.aTick.split(':')[0] : null) !== (P.aTick ? P.aTick.split(':')[0] : null)) AU.play('gavel');
+  if (myD > 0) later(() => AU.play('coin', myD >= 3000));
+  else if (myD < 0 && !bought && !snap.aOn && !P.aOn) later(() => AU.play('pay'));
+  if (snap.bk > P.bk){ AU.play('bankrupt'); FX.shake(); }
+  if (snap.status === 'over' && P.status !== 'over'){ if (s.winner === me.id){ AU.play('win'); FX.confetti(); FX.banner('Victoire !', 'Tu es le maître du négoce mondial'); } else { AU.play('win'); FX.banner('Partie terminée', byId(s, s.winner) ? byId(s, s.winner).name + ' l\'emporte' : ''); } }
+}
+/* Fin de tour automatique quand il n'y a plus rien à décider : à 6, chaque clic économisé compte. */
+function autoEnd(s){
+  const meP = byId(s, me.id), myTurn = s.status === 'playing' && meP && cur(s).id === me.id;
+  let what = null;
+  if (myTurn && s.phase === 'act' && !s.jokerOffer) what = 'end';
+  else if (myTurn && s.phase === 'buy' && s.buy && !s.buy.n && !eligible(s, meP).some(id => TITLES[id].price <= meP.cash)) what = 'endBuy';
+  const key = what ? [gid, s.turn, s.round, s.landSeq, s.phase, s.seq].join('|') : null;
+  if (key === autoEndKey) return what;
+  autoEndKey = key; clearTimeout(autoEndTimer); autoEndTimer = null;
+  if (what && canWrite){
+    const wait = (moving ? 1800 : 0) + (s.card && s.card.by === me.id ? 3400 : 2600);
+    autoEndTimer = setTimeout(() => { autoEndTimer = null; if (autoEndKey === key && game && !busy) mutate(ACT[what], null, true); }, wait);
+  }
+  return what;
+}
 
 /* =================== DÉMARRAGE =================== */
 /* La liste des parties n'est suivie qu'à l'accueil : en partie, on économise le quota Firebase. */
