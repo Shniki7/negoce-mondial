@@ -685,11 +685,11 @@ const LAYOUT = [
   'depart',
   'p:usa:mais','actu','p:can:bois','r:ble','p:bra:cafe','cont:am','p:and:cuivre','ench','r:coton','p:arg:laine','joker',
   'douane',
-  'p:fra:tourisme','actu','p:eou:eolien','r:hydro','p:eos:solaire','cont:eu','p:rus:uranium','ench','r:or','mondial','joker',
+  'p:fra:tourisme','actu','p:eou:eolien','r:hydro','p:eos:solaire','cont:eu','p:rus:uranium','ench','r:or','actu','joker',
   'mondial',
   'p:afn:gaz','actu','p:aou:cacao','r:fer','p:afe:the','cont:af','p:afa:cobalt','ench','r:bois','actu','joker',
   'douane',
-  'p:mo:petrole','actu','p:ind:riz','r:charbon','p:chn:alu','cont:as','p:ase:soie','ench','p:aus:or','r:plomb','actu'
+  'p:mo:petrole','actu','p:ind:riz','r:charbon','p:chn:alu','cont:as','p:ase:soie','ench','p:aus:or','r:plomb','mondial'
 ];
 const N = LAYOUT.length;
 function parseCell(x){ const a = x.split(':'); if (a[0]==='p') return {t:'pays',z:a[1],r:a[2]}; if (a[0]==='r') return {t:'rec',r:a[1]}; if (a[0]==='cont') return {t:'cont',c:a[1]}; return {t:a[0]}; }
