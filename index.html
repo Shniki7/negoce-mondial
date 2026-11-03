@@ -716,6 +716,24 @@ body:has(.coach:not([hidden])) .narr{bottom:220px}
 @media (max-width:900px){#bview.cam{aspect-ratio:1/1.08}#bview.cam .board{width:245%}.postcard{top:8px;padding:6px 10px 6px 6px}.pc-map canvas{width:150px!important;height:82px!important}.pc-t b{font-size:19px}.camhud .die3d{--s:36px}}
 @media (prefers-reduced-motion:reduce){.postcard,.postcard.out,.pc-map .pin{animation:none}}
 .extl{margin:10px 2px 4px}
+
+/* Ticket d'achat */
+.buyticket{position:absolute;left:50%;top:14px;z-index:9;transform:translateX(-50%);width:min(380px,calc(100% - 24px));background:#FFFDF6;color:#1C2333;border-radius:16px;padding:10px 12px 12px;box-shadow:0 0 0 3px var(--c),0 18px 44px rgba(0,0,0,.45);animation:pcIn .55s cubic-bezier(.2,1.3,.4,1)}
+.buyticket.out{animation:pcOut .5s ease-in forwards}
+.bt-h{display:flex;align-items:center;gap:8px;font-weight:900;font-size:15px;padding-bottom:7px;margin-bottom:4px;border-bottom:2px dashed #E4DACA}
+.bt-h span{flex:1;min-width:0}
+.bt-h .pawn{flex:none;width:24px;height:24px;font-size:12px}
+.bt-x{border:0;background:none;font-size:14px;cursor:pointer;color:#626B7A;padding:2px 4px}
+.bt-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 2px;font-size:14px;animation:btRow .4s ease-out backwards}
+.bt-row:nth-child(3){animation-delay:.08s}.bt-row:nth-child(4){animation-delay:.16s}.bt-row:nth-child(5){animation-delay:.24s}.bt-row:nth-child(6){animation-delay:.32s}.bt-row:nth-child(7){animation-delay:.4s}
+.bt-pct{font-weight:900}
+.bt-z{color:#626B7A;font-weight:700}
+.bt-sum{margin-top:6px;padding:6px 9px;border-radius:10px;background:#F1EBDF;font-size:13px;font-weight:700}
+.bt-sum.on{background:color-mix(in srgb,#23884C 14%,#FFFDF6);color:#1B6B3B}
+@keyframes btRow{from{opacity:0;transform:translateX(-10px)}}
+.celltip .th{margin-top:4px}
+.celltip .th-t{font-size:12px;opacity:.75;margin:1px 0 0 26px}
+@media (prefers-reduced-motion:reduce){.buyticket,.buyticket.out,.bt-row{animation:none}}
 </style>
 
 <div class="wrap" id="app">
@@ -1027,6 +1045,10 @@ function payRoyalties(s,p,r){
    (sinon une richesse à 6 titres comme la Laine pouvait être raflée en entier d'un coup). */
 const EXT_MAX = 1;
 const isExt = (b,id) => !!(b && b.mode === 'zone' && TITLES[id] && TITLES[id].z !== b.zone);
+/* Dernier achat (case ou enchère) : tous les écrans l'affichent en détail. price = prix payé aux enchères. */
+function buyEvent(s,p,ids,price){
+  s.buyEv = {seq:((s.buyEv && s.buyEv.seq) || 0) + 1, by:p.id, ids:ids.slice(0,12), price: price == null ? ids.reduce((t,id) => t + TITLES[id].price, 0) : price, auc: price != null};
+}
 function eligible(s,p){
   const b = s.buy; if (!b) return [];
   const free = id => !s.owners[id];
@@ -1166,7 +1188,7 @@ const ACT = {
     if (ids.length > s.buy.left || ids.some(id => !el.includes(id))) return false;
     const nExt = ids.filter(id => isExt(s.buy,id)).length; if (nExt > EXT_MAX - (s.buy.ext || 0)) return false;
     const total = ids.reduce((t,id) => t + TITLES[id].price, 0); if (total > p.cash) return false;
-    ids.forEach(id => { p.cash -= TITLES[id].price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; if (isExt(s.buy,id)) s.buy.ext = (s.buy.ext || 0) + 1; });
+    ids.forEach(id => { p.cash -= TITLES[id].price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; if (isExt(s.buy,id)) s.buy.ext = (s.buy.ext || 0) + 1; (s.buy.ids = s.buy.ids || []).push(id); });
     if (ids.length) log(s, `${p.name} achète ${ids.map(tName).join(', ')} pour ${fmt(total)}`);
     if (arg.end) ACT.endBuy(s,who);
   },
@@ -1174,13 +1196,14 @@ const ACT = {
     if (!isTurn(s,who,'buy')) return false;
     const p = cur(s), t = TITLES[id];
     if (!t || s.buy.left <= 0 || !eligible(s,p).includes(id) || p.cash < t.price) return false;
-    p.cash -= t.price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; if (isExt(s.buy,id)) s.buy.ext = (s.buy.ext || 0) + 1;
+    p.cash -= t.price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; if (isExt(s.buy,id)) s.buy.ext = (s.buy.ext || 0) + 1; (s.buy.ids = s.buy.ids || []).push(id);
     log(s, `${p.name} achète ${tName(id)} pour ${fmt(t.price)}`);
   },
   endBuy(s,who){
     if (!isTurn(s,who,'buy')) return false;
-    const p = cur(s), r = s.buy.res;
+    const p = cur(s), r = s.buy.res, got = (s.buy.ids || []).filter(id => s.owners[id] === p.id);
     s.buy = null;
+    if (got.length) buyEvent(s, p, got, null);
     if (r) payRoyalties(s,p,r);
     if (s.status === 'playing') nextTurn(s);
   },
@@ -1228,7 +1251,7 @@ const ACT = {
     const lot = a.lots[a.i], seller = byId(s,a.seller), b = a.bidder ? byId(s,a.bidder) : null;
     const still = lot.filter(id => s.owners[id] === a.seller);
     if (b && !b.out && b.cash >= a.price && still.length){
-      still.forEach(id => s.owners[id] = b.id); b.cash -= a.price; if (seller && !seller.out) seller.cash += a.price; if (b.st) b.st.auc = (b.st.auc || 0) + 1;
+      still.forEach(id => s.owners[id] = b.id); buyEvent(s, b, still, a.price); b.cash -= a.price; if (seller && !seller.out) seller.cash += a.price; if (b.st) b.st.auc = (b.st.auc || 0) + 1;
       log(s, `Adjugé à ${b.name} pour ${fmt(a.price)} : ${still.map(tName).join(', ')}`);
     } else if (still.length){
       still.forEach(id => delete s.owners[id]); if (seller && !seller.out) seller.cash += a.start;
@@ -1445,7 +1468,7 @@ function openGame(id){
   seenChat = null;
   if (!id){ try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} }
   if (unsubGame){ unsubGame(); unsubGame = null; }
-  gid = id; game = null; sel = null; lastStatus = null; lastPay = null; posMem = {}; feedN = null; sheetPid = null; confirmKey = null; lastRoll = null; lastLand = null; lastCard = null; followKey = null; picks = []; bidAmt = null;
+  gid = id; game = null; sel = null; lastStatus = null; lastPay = null; lastBuy = null; posMem = {}; feedN = null; sheetPid = null; confirmKey = null; lastRoll = null; lastLand = null; lastCard = null; followKey = null; picks = []; bidAmt = null;
   draft = {open:false, to:null, give:[], take:[], cg:0, ct:0};
   store.set('nm.game', id);
   render();
@@ -1491,7 +1514,8 @@ function cleanGame(d){
   if (Array.isArray(d.dice)) d.dice = d.dice.map(v => Math.max(0, Math.min(6, Math.round(N(v)))));
   const a = d.auction; if (a){ ['i','start','price','dur','tick'].forEach(k => { a[k] = N(a[k]); }); a.lots = Array.isArray(a.lots) ? a.lots.map(l => (Array.isArray(l) ? l : []).filter(id => isTid(id))) : []; if (!a.lots[a.i]) d.auction = null; }
   if (d.pick) d.pick.need = Math.max(1, N(d.pick.need));
-  if (d.buy){ d.buy.left = N(d.buy.left); d.buy.n = N(d.buy.n); d.buy.ext = N(d.buy.ext); }
+  if (d.buy){ d.buy.left = N(d.buy.left); d.buy.n = N(d.buy.n); d.buy.ext = N(d.buy.ext); d.buy.ids = (Array.isArray(d.buy.ids) ? d.buy.ids : []).filter(id => isTid(id)); }
+  if (d.buyEv){ d.buyEv.seq = N(d.buyEv.seq); d.buyEv.price = N(d.buyEv.price); d.buyEv.ids = (Array.isArray(d.buyEv.ids) ? d.buyEv.ids : []).filter(id => isTid(id)); if (!d.buyEv.ids.length) d.buyEv = null; }
   if (d.offer){ d.offer.cg = N(d.offer.cg); d.offer.ct = N(d.offer.ct); d.offer.round = N(d.offer.round) || 1; ['give','take'].forEach(k => { d.offer[k] = (Array.isArray(d.offer[k]) ? d.offer[k] : []).filter(r => RES[r]); }); }
   const o = d.options; o.mode = ['classic','rapide','chrono'].includes(o.mode) ? o.mode : 'classic'; o.theme = o.theme === 'noir' ? 'noir' : 'classique';
   o.minutes = Math.max(5, Math.min(240, Math.round(N(o.minutes)) || 45)); o.practice = !!o.practice; o.rulesName = o.rulesName ? String(o.rulesName).replace(/[<>]/g, '').slice(0, 40) : null;
@@ -1828,6 +1852,8 @@ function renderGame(){
   if (move) startMove(move);
   if (s.card && lastCard !== null && s.card.seq !== lastCard){ const c = s.card; afterMove(() => showCard(game, c)); }
   lastCard = s.card ? s.card.seq : 0;
+  if (s.buyEv && lastBuy !== null && s.buyEv.seq !== lastBuy){ const ev = s.buyEv; afterMove(() => showBuy(game, ev)); }
+  lastBuy = s.buyEv ? s.buyEv.seq : 0;
   if (s.pay && lastPay !== null && s.pay.seq !== lastPay){ const ev = s.pay; afterMove(() => showPay(game, ev)); }
   lastPay = s.pay ? s.pay.seq : 0;
   const modeName = {classic:'Classique', rapide:'Rapide', chrono:'Chrono'}[s.options.mode];
@@ -1986,6 +2012,24 @@ function startMove(m){
   setTimeout(() => { if (moving) moveDone(); }, 480 + n*STEP + 1500);
 }
 
+
+/* ---------- Ticket d'achat : qui a acheté quoi, où, combien, et ce que ça change ---------- */
+let lastBuy = null;
+function showBuy(s, ev){
+  const v = document.getElementById('bview'), p = byId(s, ev.by); if (!v || !p || v.offsetParent === null) return;
+  v.querySelectorAll('.buyticket, .postcard').forEach(e => e.remove());
+  const mine = p.id === me.id, rs = [...new Set(ev.ids.map(id => TITLES[id].r))];
+  const rows = ev.ids.slice().sort((a,b) => TITLES[a].r.localeCompare(TITLES[b].r) || TITLES[b].pct - TITLES[a].pct).map(id => { const t = TITLES[id];
+    return `<div class="bt-row"><span>${RES[t.r].i} <b>${esc(RES[t.r].n)}</b> <span class="bt-pct">${t.pct} %</span> <span class="bt-z">${esc(ZONES[t.z].n)}</span></span>${ev.auc ? '' : `<span class="num">${fmt(t.price)}</span>`}</div>`; }).join('');
+  const sum = rs.map(r => { const sh = share(s,p.id,r), tr = tierOf(sh), lvl = tr < 0 ? `pas encore de royalties (${TIER_MIN[0]} %)` : `${tr === 1 ? 'monopole' : tr >= 2 ? 'super monopole' : 'royalties'} · ${fmt(tierRoy(r,tr))} par passage`;
+    return `<div class="bt-sum ${tr >= 0 ? 'on' : ''}">${RES[r].i} ${esc(RES[r].n)} : ${mine ? 'tu as' : esc(p.name) + ' a'} <b>${sh} %</b> → ${lvl}</div>`; }).join('');
+  const el = document.createElement('div'); el.className = 'buyticket'; el.setAttribute('role','status'); el.style.setProperty('--c', `var(${pcol(p.color)})`);
+  el.innerHTML = `<div class="bt-h">${pawn(p)} <span>${mine ? 'Tu achètes' : esc(p.name) + (ev.auc ? ' remporte l\'enchère' : ' achète')}</span><b class="num">${fmt(ev.price)}</b><button class="bt-x" aria-label="Fermer">✕</button></div>${rows}${sum}`;
+  el.querySelector('.bt-x').addEventListener('click', () => el.remove());
+  v.appendChild(el);
+  const n = ev.ids.length; setTimeout(() => el.classList.add('out'), 5200 + n*500); setTimeout(() => el.remove(), 5700 + n*500);
+}
+
 /* ---------- Carte « royalties » : qui paie qui, combien ---------- */
 function showPay(s, ev){
   const el = document.getElementById('evt'); if (!el || !ev || !ev.items || !ev.items.length || !RES[ev.r]) return;
@@ -2075,7 +2119,7 @@ function tipHTML(s, i){
     const free = c.t === 'pays' ? (s.dyn ? [...new Set([...ZONE_T[c.z], ...RES_T[c.r]])] : ZONE_T[c.z]).filter(id => !s.owners[id]).length : 0;
     body = `<div class="tt">${c.t === 'pays' ? esc(ZONES[c.z].n) : esc(TH.rec) + ' · +' + fmt(scaled(s,RULE.rec)) + ' × dés'}</div><div class="tr">${RES[c.r].i} ${esc(RES[c.r].n)}</div>
       ${c.t === 'pays' ? `<div class="tn">${free} titre${free>1?'s':''} libre${free>1?'s':''}${s.dyn ? ' (pays + 1 ' + esc(RES[c.r].n) + ' ailleurs)' : ' sur ' + ZONE_T[c.z].length}</div>` : ''}
-      <div class="tn">${hold.length ? hold.map(x => `${pawn(x.p)} ${esc(x.p.name)} ${x.sh} %${tierOf(x.sh) >= 0 ? ' → ' + fmt(tierRoy(c.r, tierOf(x.sh))) : ''}`).join('<br>') : 'Aucune royalty pour l\'instant'}</div>`;
+      <div class="tn">${hold.length ? hold.map(x => `<div class="th">${pawn(x.p)} <b>${esc(x.p.name)} ${x.sh} %</b>${tierOf(x.sh) >= 0 ? ' → ' + fmt(tierRoy(c.r, tierOf(x.sh))) : ' · pas de royalties'}<div class="th-t">${RES_T[c.r].filter(id => s.owners[id] === x.p.id).sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => `${esc(ZONES[TITLES[id].z].s)} ${TITLES[id].pct} %`).join(' · ')}</div></div>`).join('') : 'Personne n\'en possède encore'}</div>`;
   } else if (c.t === 'cont') body = `<div class="tt">${TH.contIco} ${esc(TH.cont)} · ${esc(CONT[c.c].n)}</div>`;
   else body = `<div class="tt">${SPEC[c.t].i} ${esc(SPEC[c.t].l)}</div>`;
   return body + (here.length ? `<div class="tn">${here.map(p => pawn(p)).join(' ')} ici</div>` : '') + '<div class="tn faint">Clic : tout le détail</div>';
@@ -2447,7 +2491,7 @@ function camHudHTML(s, rolling){
 function postcard(i, p){
   const c = CELLS[i]; if (!c || c.t !== 'pays' || !p || reducedMotion()) return;
   const v = document.getElementById('bview'); if (!v || v.offsetParent === null) return;
-  const old = v.querySelector('.postcard'); if (old) old.remove();
+  const old = v.querySelector('.postcard'); if (old) old.remove(); if (v.querySelector('.buyticket')) return;
   const Z = ZONES[c.z], el = document.createElement('div'); el.className = 'postcard';
   el.innerHTML = `<div class="pc-map"><canvas></canvas><i class="pin" style="--c:var(${pcol(p.color)})"><b>${esc((p.name || '?').slice(0,1).toUpperCase())}</b></i></div>
     <div class="pc-t"><small>${p.id === me.id ? 'Ton escale' : 'Escale de ' + esc(p.name)}</small><b>${esc(Z.n)}</b><span>${RES[c.r].i} ${esc(RES[c.r].n)} · ${esc(CONT[Z.g].n)}</span></div>`;
