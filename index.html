@@ -138,10 +138,33 @@ details.rules summary{cursor:pointer;font-family:var(--display);font-size:21px;c
 .die i{display:block;margin:auto;width:72%;aspect-ratio:1;border-radius:50%}
 .die i.on{background:#1C2333}
 .die.red i.on{background:#fff}
-.dice.rolling .die{animation:tumble .6s cubic-bezier(.3,1.4,.6,1)}
-.dice.rolling .die:nth-child(2){animation-delay:.07s}
+.dice{perspective:700px}
+.die3d{--s:clamp(26px,6cqi,62px);width:var(--s);height:var(--s);position:relative;transform-style:preserve-3d;transform:rotateX(-24deg) rotateY(30deg)}
+.die3d .cube{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry))}
+.die3d .die{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18%;box-shadow:inset 0 0 0 .25cqi rgba(0,0,0,.08),inset 0 -.5cqi .8cqi rgba(0,0,0,.14)}
+.die3d .f1{transform:translateZ(calc(var(--s)/2))}.die3d .f6{transform:rotateY(180deg) translateZ(calc(var(--s)/2))}
+.die3d .f2{transform:rotateY(90deg) translateZ(calc(var(--s)/2))}.die3d .f5{transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}
+.die3d .f3{transform:rotateX(90deg) translateZ(calc(var(--s)/2))}.die3d .f4{transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}
+.die3d.red .die{background:#E23B3B}.die3d.red .die i.on{background:#fff}
+.die3d::after{content:'';position:absolute;left:8%;right:8%;bottom:-38%;height:22%;border-radius:50%;background:rgba(0,0,0,.35);filter:blur(4px);transform:rotateX(90deg)}
+.dice.rolling .cube{animation:roll3d 1s cubic-bezier(.15,.75,.3,1)}
+.dice.rolling .die3d{animation:dhop 1s ease-out}
+.dice.rolling .die3d:nth-child(2) .cube,.dice.rolling .die3d:nth-child(2){animation-delay:.08s;animation-fill-mode:backwards}
+@keyframes roll3d{from{transform:rotateX(calc(var(--rx) + 810deg)) rotateY(calc(var(--ry) - 630deg))}}
+@keyframes dhop{0%{transform:translateY(-140%) rotateX(-24deg) rotateY(30deg)}35%{transform:translateY(0) rotateX(-24deg) rotateY(30deg)}52%{transform:translateY(-28%) rotateX(-24deg) rotateY(30deg)}68%{transform:translateY(0) rotateX(-24deg) rotateY(30deg)}80%{transform:translateY(-7%) rotateX(-24deg) rotateY(30deg)}100%{transform:rotateX(-24deg) rotateY(30deg)}}
+/* Vue 3D : le plateau est posé sur la table, légèrement incliné, et suit un peu la souris */
+#bview.v3d{perspective:1700px;perspective-origin:50% 10%}
+#bview.v3d .board{transform:rotateX(calc(20deg + var(--py,0deg))) rotateY(var(--px,0deg)) scale(.97);transform-origin:50% 92%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.8,.3,1);box-shadow:0 1.4cqi 0 #13264A,0 1.6cqi 0 #0E1D39,0 3.5cqi 5cqi rgba(0,0,0,.45)}
+#bview.v3d .cell{transform:translateZ(.5cqi);box-shadow:0 .45cqi 0 rgba(0,0,0,.3)}
+#bview.v3d .cell.sel{box-shadow:inset 0 0 0 .45cqi var(--gold),0 .45cqi 0 rgba(0,0,0,.3);transform:translateZ(1.2cqi)}
+#bview.v3d .cell:hover{transform:translateZ(1.2cqi)}
+#bview.v3d .cell.landed{transform:translateZ(1.6cqi);transition:transform .3s}
+#bview.v3d .center{transform-style:preserve-3d;box-shadow:inset 0 0 3cqi rgba(0,0,0,.35)}
+#bview.v3d .c-row{transform:translateZ(3cqi)}
+#bview.v3d .pawns .pawn{transform:translateY(-.3cqi);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 1.5px #fff,0 .6cqi .5cqi rgba(0,0,0,.55)}
+#bview.v3d .cell{transition:transform .25s}
 @keyframes tumble{0%{transform:rotate(-220deg) scale(.5);opacity:.2}100%{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){.dice.rolling .die,.cell.landed{animation:none}}
+@media (prefers-reduced-motion:reduce){.dice.rolling .cube,.dice.rolling .die3d,.cell.landed{animation:none}}
 .turnchip{display:inline-flex;align-items:center;gap:.8cqi;background:rgba(255,255,255,.12);border-radius:999px;padding:.5cqi 1.6cqi .5cqi .6cqi;font-size:clamp(10px,1.6cqi,17px);font-weight:900}
 .turnchip .pawn{width:clamp(16px,2.6cqi,28px);height:clamp(16px,2.6cqi,28px)}
 .newscard{background:#FFFDF6;color:#1C2333;border-radius:1.4cqi;padding:1.4cqi 2.2cqi;font-size:clamp(10px,1.75cqi,18px);font-weight:700;max-width:92%;text-align:center;box-shadow:0 .4cqi 0 rgba(0,0,0,.3)}
@@ -487,8 +510,10 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
   .coach.inline{position:static;width:auto;margin:0 0 10px}
 }
 #bview{position:relative}
-.mover{position:absolute;left:0;top:0;z-index:6;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 0 0 3px #fff,0 6px 14px rgba(0,0,0,.45);will-change:transform}
-.mover.hop{animation:hop .16s ease-out}
+.mover{position:absolute;left:0;top:0;z-index:6;pointer-events:none;will-change:transform}
+.mover>b{width:100%;height:100%;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #fff,0 6px 14px rgba(0,0,0,.45)}
+.mover.hop>b{animation:mvHop .17s ease-out}
+@keyframes mvHop{50%{transform:translateY(-35%) scale(1.1)}}
 @keyframes hop{50%{scale:1.25}}
 .pawns .pawn{width:clamp(12px,2.4cqi,24px);height:clamp(12px,2.4cqi,24px);font-size:clamp(7px,1.3cqi,12px)}
 .pawns .pawn.turn{animation:turnP 1.4s ease-in-out infinite;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 2px #fff,0 0 0 4px var(--gold)}
@@ -525,7 +550,7 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
 .shr .bar i{position:absolute;top:0;bottom:0;width:2px;background:#fff}
 .shr .note{font-size:12px;color:#6A7180}
 @media (max-width:900px){ #sFeed{order:2} }
-@media (prefers-reduced-motion:reduce){.feed li.new,.pawns .pawn.turn,.mover.hop{animation:none}}
+@media (prefers-reduced-motion:reduce){.feed li.new,.pawns .pawn.turn,.mover.hop>b{animation:none}}
 /* Plateau : textes plus grands, contrastes plus nets */
 .cell .band{font-size:clamp(6px,1.05cqi,12px);padding:.45cqi .2cqi}
 .cell .ico{font-size:clamp(12px,3cqi,34px)}
@@ -623,6 +648,73 @@ details.reclaim summary{cursor:pointer;padding:10px 0;min-height:40px}
 .count.hot{animation:hot .45s ease-out;color:var(--bad)}
 @keyframes hot{30%{transform:scale(1.35)}}
 @media (prefers-reduced-motion:reduce){.floater,.turnban,.board.shake,.cell.bought,.btn.autoend::after,.btn.ready,.count.hot,.bump{animation:none}}
+
+/* Contrats secrets et actionnaires */
+.contracts h2{margin-bottom:2px}
+.ctr{border:2px solid var(--line);border-radius:14px;padding:9px 11px;margin-top:8px;background:var(--surface)}
+.ctr.done{border-color:color-mix(in srgb,var(--good) 55%,var(--line));background:color-mix(in srgb,var(--good) 9%,var(--surface))}
+.ct-t{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+.ct-t b{color:var(--good);white-space:nowrap}
+.ct-bar{height:7px;border-radius:99px;background:color-mix(in srgb,var(--ink) 10%,transparent);margin:7px 0 3px;overflow:hidden}
+.ct-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--good));transition:width .8s cubic-bezier(.2,.9,.3,1)}
+.shareholder{border-color:var(--gold)}
+.sh-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.sh-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:12px;background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.sh-row.on{background:var(--gold-soft)}
+.ct-rev{font-size:13px;text-align:right;line-height:1.5}
+.ctlist{list-style:none;padding-left:0}
+
+/* Le commentateur */
+.narr{position:fixed;right:96px;bottom:24px;z-index:28;display:flex;align-items:flex-start;gap:10px;max-width:min(430px,calc(100% - 110px));background:#17294A;color:#fff;border-radius:18px 18px 6px 18px;padding:11px 15px 12px 11px;box-shadow:0 0 0 2px var(--gold),0 14px 34px rgba(0,0,0,.35);pointer-events:none}
+.narr .mic{flex:none;width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px}
+.narr p{margin:0;font-weight:700;font-size:14.5px;line-height:1.4;min-height:1.4em}
+.narr.in{animation:narrIn .45s cubic-bezier(.2,1.3,.4,1)}
+.narr.in .mic{animation:micTalk .5s ease-in-out 6 alternate}
+@keyframes narrIn{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes micTalk{to{transform:scale(1.15) rotate(-8deg)}}
+@media (max-width:900px){.narr{right:auto;left:12px;bottom:84px;max-width:calc(100% - 96px)}}
+@media (prefers-reduced-motion:reduce){.narr.in,.narr.in .mic{animation:none}}
+body:has(.coach:not([hidden])) .narr{bottom:220px}
+
+/* Sélecteur de vue */
+.vseg{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,transparent);margin-right:auto}
+.vseg .btn{box-shadow:none;padding:5px 11px}
+.vseg .btn.ghost{background:transparent;box-shadow:none}
+@media (min-width:901px) and (min-aspect-ratio:3/2){ .board-wrap .bctl .vseg{margin-right:0} }
+/* Vue caméra */
+#bview.cam{aspect-ratio:1/.92;max-height:80vh;max-height:80dvh;overflow:hidden;perspective:1050px;perspective-origin:50% 18%;border-radius:22px;background:radial-gradient(ellipse 120% 70% at 50% 0%,#36588f 0%,#1a2f57 45%,#0c1730 100%);box-shadow:inset 0 0 70px rgba(0,0,0,.55),0 8px 0 #0E1D39}
+#bview.cam .board{max-width:none;width:205%;margin:0;transform-origin:50% 50%;transform-style:preserve-3d;border-radius:2cqi;box-shadow:0 0 0 .8cqi #13264A,0 2cqi 4cqi rgba(0,0,0,.6)}
+#bview.cam .cell{overflow:visible;transform-style:preserve-3d}
+#bview.cam .cell .band{border-radius:.7cqi .7cqi 0 0}
+#bview.cam .pawns{transform-style:preserve-3d}
+#bview.cam .pawns .pawn{transform-origin:50% 100%;transform:rotateZ(calc(var(--cz,0deg) * -1)) rotateX(-58deg);transition:transform 1s cubic-bezier(.25,.8,.3,1);height:calc(clamp(12px,2.4cqi,24px) * 1.35);border-radius:50% 50% 22% 22% / 40% 40% 22% 22%;background:linear-gradient(90deg,color-mix(in srgb,var(--c) 70%,#fff),var(--c) 45%,color-mix(in srgb,var(--c) 70%,#000));box-shadow:0 0 0 1.5px #fff,0 .5cqi .6cqi rgba(0,0,0,.55)}
+#bview.cam .c-row{visibility:hidden}
+.camfx{position:absolute;pointer-events:none;transform-origin:50% 50%;transform-style:preserve-3d;z-index:5}
+.mover.stand{transform-origin:50% 100%}
+.mover.stand>b{border-radius:50% 50% 22% 22% / 40% 40% 22% 22%;background:linear-gradient(90deg,color-mix(in srgb,var(--c) 70%,#fff),var(--c) 45%,color-mix(in srgb,var(--c) 70%,#000));box-shadow:0 0 0 2px #fff,0 0 14px 4px color-mix(in srgb,var(--c) 60%,transparent)}
+.camhudwrap{position:absolute;left:12px;right:12px;bottom:12px;z-index:7;pointer-events:none}
+.camhud{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.camhud .dice{--cq:1px;display:flex;gap:12px;padding:10px 14px;border-radius:18px;background:rgba(10,20,40,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.camhud .die3d{--s:44px}
+.camhud .ch-info{display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:auto}
+.camhud .turnchip{background:rgba(10,20,40,.7);color:#fff;border-radius:999px;padding:5px 12px 5px 6px;font-weight:800;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.camhud .turnchip .pawn{width:22px;height:22px}
+.ch-where{background:rgba(255,253,246,.92);color:#1C2333;border-radius:10px;padding:4px 10px;font-weight:800;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.postcard{position:absolute;left:50%;top:14px;z-index:8;transform:translateX(-50%);display:flex;gap:12px;align-items:center;background:#FFFDF6;color:#1C2333;border-radius:16px;padding:8px 14px 8px 8px;box-shadow:0 0 0 3px var(--gold),0 16px 40px rgba(0,0,0,.45);pointer-events:none;animation:pcIn .6s cubic-bezier(.2,1.3,.4,1)}
+.postcard.out{animation:pcOut .5s ease-in forwards}
+.pc-map{position:relative;border-radius:10px;overflow:hidden;background:#17294A;flex:none}
+.pc-map canvas{display:block}
+.pc-map .pin{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-30px 0 0 -11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);box-shadow:0 0 0 2px #fff,0 4px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:11px;font-style:normal;animation:pinDrop .7s cubic-bezier(.3,1.6,.5,1) .25s backwards}
+.pc-map .pin b{transform:rotate(45deg)}
+.pc-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pc-t small{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
+.pc-t b{font-family:var(--display);font-weight:400;font-size:24px;line-height:1.05;letter-spacing:.02em}
+.pc-t span{font-weight:700;font-size:13px;color:#626B7A}
+@keyframes pcIn{from{opacity:0;transform:translate(-50%,-30px) rotate(-4deg) scale(.85)}}
+@keyframes pcOut{to{opacity:0;transform:translate(-50%,-20px) scale(.95)}}
+@keyframes pinDrop{from{transform:translateY(-60px) rotate(-45deg);opacity:0}60%{opacity:1}}
+@media (max-width:900px){#bview.cam{aspect-ratio:1/1.08}#bview.cam .board{width:245%}.postcard{top:8px;padding:6px 10px 6px 6px}.pc-map canvas{width:150px!important;height:82px!important}.pc-t b{font-size:19px}.camhud .die3d{--s:36px}}
+@media (prefers-reduced-motion:reduce){.postcard,.postcard.out,.pc-map .pin{animation:none}}
 </style>
 
 <div class="wrap" id="app">
@@ -685,11 +777,11 @@ const LAYOUT = [
   'depart',
   'p:usa:mais','actu','p:can:bois','r:ble','p:bra:cafe','cont:am','p:and:cuivre','ench','r:coton','p:arg:laine','joker',
   'douane',
-  'p:fra:tourisme','actu','p:eou:eolien','r:hydro','p:eos:solaire','cont:eu','p:rus:uranium','ench','r:or','mondial','joker',
+  'p:fra:tourisme','actu','p:eou:eolien','r:hydro','p:eos:solaire','cont:eu','p:rus:uranium','ench','r:or','actu','joker',
   'mondial',
   'p:afn:gaz','actu','p:aou:cacao','r:fer','p:afe:the','cont:af','p:afa:cobalt','ench','r:bois','actu','joker',
   'douane',
-  'p:mo:petrole','actu','p:ind:riz','r:charbon','p:chn:alu','cont:as','p:ase:soie','ench','p:aus:or','r:plomb','actu'
+  'p:mo:petrole','actu','p:ind:riz','r:charbon','p:chn:alu','cont:as','p:ase:soie','ench','p:aus:or','r:plomb','mondial'
 ];
 const N = LAYOUT.length;
 function parseCell(x){ const a = x.split(':'); if (a[0]==='p') return {t:'pays',z:a[1],r:a[2]}; if (a[0]==='r') return {t:'rec',r:a[1]}; if (a[0]==='cont') return {t:'cont',c:a[1]}; return {t:a[0]}; }
@@ -762,6 +854,50 @@ function applyRules(r){
   NEWS.splice(0, NEWS.length, ...(r.news || DEFAULT_NEWS).map(x => ({t:x.t, d:x.d})));
 }
 applyRules(null);
+
+
+/* =================== CONTRATS SECRETS ET ACTIONNAIRES =================== */
+/* Chaque joueur reçoit 2 contrats en début de partie (parties lancées avec cette version). Ils sont révélés quand ils sont
+   remplis, et tous à la fin. Les montants suivent le capital de départ, comme les autres montants fixes. */
+const kindsOf = (s,p) => ownedRes(s,p.id).map(r => DEFAULT_KIND[r]);
+const nKind = (s,p,k) => kindsOf(s,p).filter(x => x === k).length;
+const CONTRACTS = {
+  ener2:{t:'Posséder des titres dans 2 énergies différentes', prime:4000, prog:(s,p) => [nKind(s,p,'ener'), 2]},
+  agri3:{t:'Posséder des titres dans 3 richesses agricoles', prime:4000, prog:(s,p) => [nKind(s,p,'agri'), 3]},
+  mine2:{t:'Posséder des titres dans 2 richesses minières', prime:4000, prog:(s,p) => [nKind(s,p,'mine'), 2]},
+  cont4:{t:'Posséder des titres sur les 4 continents', prime:5000, prog:(s,p) => [new Set(owned(s,p.id).map(id => ZONES[TITLES[id].z].g)).size, 4]},
+  titres10:{t:'Posséder 10 titres en même temps', prime:4000, prog:(s,p) => [owned(s,p.id).length, 10]},
+  paliers3:{t:'Toucher des royalties sur 3 richesses', prime:6000, prog:(s,p) => [Object.keys(RES).filter(r => tierOf(share(s,p.id,r)) >= 0).length, 3]},
+  mono:{t:'Atteindre un monopole sur 2 richesses', prime:7000, prog:(s,p) => [Object.keys(RES).filter(r => tierOf(share(s,p.id,r)) >= 1).length, 2]},
+  gros:{t:'Posséder 2 titres d\'au moins 40 %', prime:4000, prog:(s,p) => [owned(s,p.id).filter(id => TITLES[id].pct >= 40).length, 2]},
+  ench2:{t:'Remporter 2 enchères', prime:5000, prog:(s,p) => [(p.st && p.st.auc) || 0, 2]},
+  troc:{t:'Conclure une transaction avec un autre joueur', prime:3000, prog:(s,p) => [(p.st && p.st.tr) || 0, 1]},
+  roy:{t:'Encaisser 10 M€ de royalties au total', prime:5000, prog:(s,p) => [Math.floor(((p.st && p.st.roy) || 0)/100)/10, Math.round(scaled(s,10000)/1000)], money:true},
+  tours3:{t:'Faire 3 tours du monde', prime:4000, prog:(s,p) => [p.laps || 0, 3]},
+  recevez:{t:'S\'arrêter 3 fois sur une case Recevez', prime:3000, prog:(s,p) => [(p.st && p.st.rec) || 0, 3]}
+};
+const ctDone = (s,p,c) => { const C = CONTRACTS[c.id]; if (!C) return false; const [a,b] = C.prog(s,p); return a >= b; };
+const ctTxt = (s,c) => CONTRACTS[c.id] ? CONTRACTS[c.id].t.replace('10 M€', fmt(scaled(s,10000))).replace('case Recevez', 'case ' + TH.rec) : '';
+function dealContracts(s){
+  const ids = shuffle(Object.keys(CONTRACTS));
+  s.players.forEach((p,k) => { p.st = {auc:0, tr:0, roy:0, rec:0}; p.ct = [ids[(2*k) % ids.length], ids[(2*k+1) % ids.length]].map(id => ({id, done:false})); p.bet = null; });
+}
+/* Appelé après chaque action : une prime par contrat, une seule fois. */
+function checkContracts(s){
+  if (s.status !== 'playing' || !s.ctOn) return;
+  alive(s).forEach(p => (p.ct || []).forEach(c => {
+    if (c.done || !ctDone(s,p,c)) return;
+    c.done = true; const prime = scaled(s, CONTRACTS[c.id].prime);
+    p.cash += prime; s.ctEv = {seq:((s.ctEv && s.ctEv.seq) || 0) + 1, by:p.id, id:c.id, prime};
+    log(s, `${p.name} remplit un contrat secret : « ${ctTxt(s,c)} » et touche une prime de ${fmt(prime)}`);
+  }));
+}
+/* Cote d'un pari : plus le joueur soutenu pèse peu dans la fortune totale, plus le pari rapporte. Fixée au moment de miser. */
+function betOdds(s,pid){
+  const a = alive(s), tot = a.reduce((t,q) => t + worth(s,q), 0), w = worth(s, byId(s,pid));
+  return Math.round(Math.min(8, Math.max(1.2, tot/Math.max(1,w)))*10)/10;
+}
+function richest(s){ return alive(s).slice().sort((a,b) => worth(s,b) - worth(s,a))[0]; }
 
 /* =================== THÈMES =================== */
 /* Le thème ne change que les noms, icônes et textes : règles, titres et chiffres sont identiques. */
@@ -838,6 +974,9 @@ function bankrupt(s,p,why){
   s.bankrupts = (s.bankrupts||0) + 1;
   log(s, `${p.name} ${why || 'fait faillite'} : ses titres retournent à la banque`);
   checkEnd(s);
+  if (s.status === 'playing' && s.ctOn){ const top = richest(s);
+    if (p.bot && top){ p.bet = {pid:top.id, odds:betOdds(s,top.id), round:s.round}; log(s, `${p.name} devient actionnaire et mise sur ${top.name} (cote ×${p.bet.odds})`); }
+    else if (!p.bot) log(s, `${p.name} devient actionnaire : il peut miser sur le futur vainqueur`); }
 }
 function checkEnd(s){
   if (s.status !== 'playing') return;
@@ -876,6 +1015,7 @@ function payRoyalties(s,p,r){
     if (amt <= 0) continue;
     const before = p.cash;
     const paid = charge(s,p,amt,q,`royalties ${RES[r].n}, ${sh} %`);
+    if (q.st) q.st.roy = (q.st.roy || 0) + (paid ? amt : before);
     items.push({to:q.id, amt: paid ? amt : before, sh});
     if (!paid){ ev.broke = true; ok = false; break; }
   }
@@ -897,7 +1037,7 @@ function land(s,p){
     case 'pays':
       s.buy = {mode:'zone', zone:c.z, res:c.r, left:RULE.maxBuy, n:0}; s.phase = 'buy'; break;
     case 'rec':
-      gain(s,p,scaled(s,RULE.rec)*d,`case ${TH.rec}, ${d} aux dés`); payRoyalties(s,p,c.r); break;
+      gain(s,p,scaled(s,RULE.rec)*d,`case ${TH.rec}, ${d} aux dés`); if (p.st) p.st.rec = (p.st.rec || 0) + 1; payRoyalties(s,p,c.r); break;
     case 'cont':
       s.buy = {mode:'cont', cont:c.c, left:RULE.maxBuy, n:0};
       if (eligible(s,p).length) s.phase = 'buy'; else { s.buy = null; log(s, `${p.name} : aucun titre disponible en ${CONT[c.c].n} pour les richesses qu'il possède`); }
@@ -986,7 +1126,8 @@ const ACT = {
     shuffle(s.players);
     s.players.forEach(p => { p.cash = cash; p.pos = 0; p.laps = 0; p.out = false; p.skip = false; p.jokers = 0; });
     Object.assign(s, {status:'playing', startedAt:Date.now(), turn:0, round:1, phase:'roll', owners:{}, buy:null, pick:null, auction:null, offer:null, jokerOffer:false,
-      deck: shuffle(NEWS.map((_,i) => i)), deckPos:0, turnAt:Date.now(), jokersLeft:RULE.jokers, card:null, dice:null, bankrupts:0, winner:null, startCash:cash, dyn:1});
+      deck: shuffle(NEWS.map((_,i) => i)), deckPos:0, turnAt:Date.now(), jokersLeft:RULE.jokers, card:null, dice:null, bankrupts:0, winner:null, startCash:cash, dyn:1, ctOn:1, ctEv:null});
+    dealContracts(s);
     if (s.options.mode === 'chrono') s.endsAt = Date.now() + s.options.minutes*60000;
     log(s, `La partie commence avec ${fmt(cash)} chacun. ${s.players[0].name} ouvre le jeu.`);
     if (s.options.mode === 'rapide'){
@@ -1078,7 +1219,7 @@ const ACT = {
     const lot = a.lots[a.i], seller = byId(s,a.seller), b = a.bidder ? byId(s,a.bidder) : null;
     const still = lot.filter(id => s.owners[id] === a.seller);
     if (b && !b.out && b.cash >= a.price && still.length){
-      still.forEach(id => s.owners[id] = b.id); b.cash -= a.price; if (seller && !seller.out) seller.cash += a.price;
+      still.forEach(id => s.owners[id] = b.id); b.cash -= a.price; if (seller && !seller.out) seller.cash += a.price; if (b.st) b.st.auc = (b.st.auc || 0) + 1;
       log(s, `Adjugé à ${b.name} pour ${fmt(a.price)} : ${still.map(tName).join(', ')}`);
     } else if (still.length){
       still.forEach(id => delete s.owners[id]); if (seller && !seller.out) seller.cash += a.start;
@@ -1109,7 +1250,7 @@ const ACT = {
     const f = byId(s,o.from), t = byId(s,o.to);
     o.give.forEach(r => RES_T[r].forEach(id => { if (s.owners[id] === f.id) s.owners[id] = t.id; }));
     o.take.forEach(r => RES_T[r].forEach(id => { if (s.owners[id] === t.id) s.owners[id] = f.id; }));
-    f.cash += o.ct - o.cg; t.cash += o.cg - o.ct;
+    f.cash += o.ct - o.cg; t.cash += o.cg - o.ct; [f,t].forEach(x => { if (x.st) x.st.tr = (x.st.tr || 0) + 1; });
     const part = (rs,c) => [rs.map(r => RES[r].n).join(', '), c ? fmt(c) : ''].filter(Boolean).join(' + ') || 'rien';
     log(s, `Transaction conclue : ${f.name} cède ${part(o.give,o.cg)} contre ${part(o.take,o.ct)} de ${t.name}`);
   },
@@ -1158,10 +1299,18 @@ const ACT = {
     if (!p || !t) return false;
     s.chat = (s.chat || []).concat({by:who, n:p.name, t, at:Date.now()}).slice(-40);
   },
+  bet(s,who,pid){
+    const p = byId(s,who), t = byId(s,pid);
+    if (s.status !== 'playing' || !s.ctOn || !p || !p.out || !t || t.out || t.id === who) return false;
+    if (p.bet && p.bet.pid === pid) return false;
+    p.bet = {pid, odds:betOdds(s,pid), round:s.round};
+    log(s, `${p.name}, actionnaire, mise sur ${t.name} (cote ×${p.bet.odds})`);
+  },
   rematch(s,who){
     if (s.status !== 'over' || s.host !== who) return false;
     Object.assign(s, {status:'lobby', phase:null, owners:{}, winner:null, card:null, dice:null, offer:null, auction:null, buy:null, pick:null});
     s.players = s.players.map(p => ({id:p.id, name:p.name, color:p.color, bot:!!p.bot, cash:0, pos:0}));
+    s.ctEv = null; s.ctOn = 0;
     s.log = []; log(s, 'Nouvelle partie : en attente du départ');
   }
 };
@@ -1238,7 +1387,7 @@ const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function toast(msg){ toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.hidden = true, 3800); }
 
-function stamp(s){ s.seq = (s.seq||0) + 1; s.updatedAt = Date.now(); const p = byId(s, me.id); if (p) p.seen = Date.now(); }
+function stamp(s){ checkContracts(s); s.seq = (s.seq||0) + 1; s.updatedAt = Date.now(); const p = byId(s, me.id); if (p) p.seen = Date.now(); }
 async function mutate(fn, arg, silent){
   if (!gid) return;
   for (let i = 0; busy && i < 30; i++) await sleep(100);
@@ -1435,7 +1584,11 @@ function drawMap(canvas, s){
 function rchip(r){ return `<span class="rchip" style="--k:var(--k-${RES[r].k})"><i>${RES[r].i}</i>${esc(RES[r].n)}</span>`; }
 function pawn(p, turn){ return `<span class="pawn${p.id===me.id?' me':''}${turn ? ' turn' : ''}" data-pid="${esc(p.id)}" style="--c:var(${pcol(p.color)})" title="${esc(p.name)}">${esc(p.name.slice(0,1).toUpperCase())}</span>`; }
 const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-function die(v,red){ let h = ''; for (let i=0;i<9;i++) h += `<i class="${(PIPS[v]||[]).includes(i)?'on':''}"></i>`; return `<div class="die${red?' red':''}" role="img" aria-label="${red?'dé rouge ':''}${v||''}">${h}</div>`; }
+function face(v){ let h = ''; for (let i=0;i<9;i++) h += `<i class="${(PIPS[v]||[]).includes(i)?'on':''}"></i>`; return h; }
+/* Dé en 3D : un cube à six faces, tourné pour montrer la valeur tirée (1 devant, 6 derrière, 2 à droite, 5 à gauche, 3 dessus, 4 dessous). */
+const DIE_ROT = {0:[0,0],1:[0,0],2:[0,-90],3:[-90,0],4:[90,0],5:[0,90],6:[0,180]};
+function die(v,red){ const [rx,ry] = DIE_ROT[v] || [0,0];
+  return `<div class="die3d${red?' red':''}" role="img" aria-label="${red?'dé rouge ':''}${v||''}"><div class="cube" style="--rx:${rx}deg;--ry:${ry}deg">${[1,6,2,5,3,4].map(f => `<div class="die f${f}">${face(f)}</div>`).join('')}</div></div>`; }
 function gridPos(i){ if (i<=12) return [13,13-i]; if (i<=24) return [13-(i-12),1]; if (i<=36) return [1,1+(i-24)]; return [1+(i-36),13]; }
 const SPEC = {
   depart:{l:'Départ',i:'➜',c:'--s-depart',d:'Point de départ. Chaque passage compte comme un tour du monde, qui ouvre le choix mondial et les enchères.'},
@@ -1496,6 +1649,8 @@ function rulesHTML(){
     <div><h3>Choix continental et mondial</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du continent (sans les États-Unis, la Russie, la Chine ni l'Inde) ou du monde entier après un premier tour, mais seulement pour des richesses que tu possèdes déjà.</p></div>
     <div><h3>Enchères et Joker</h3><p>Après un premier tour du monde, la case Enchères t'oblige à vendre autant de titres que le dé rouge, à partir de ${RULE.aucStart} % de leur prix. Le Joker (${fmt(RULE.jokerPrice)}) t'en dispense une fois.</p></div>
     <div><h3>Doubles, Douane, Actualité</h3><p>${dbl} La Douane fait passer le tour suivant${wide ? ' (à 5 joueurs ou plus : elle coûte le prix d\'un double au dé rouge, sans attendre)' : ''}. L'Actualité fait gagner ou perdre une somme.</p></div>
+    <div><h3>Contrats secrets</h3><p>Chacun reçoit 2 contrats secrets en début de partie. Le premier à remplir un contrat touche sa prime aussitôt, et le contrat est révélé.</p></div>
+    <div><h3>Actionnaires</h3><p>Un joueur en faillite n'est pas éliminé du spectacle : il devient actionnaire et mise sur le futur vainqueur, avec une cote d'autant plus forte que le joueur est pauvre au moment de miser.</p></div>
     <div><h3>Transactions</h3><p>À tout moment, échange avec un joueur tous tes titres d'une ou plusieurs richesses, avec ou sans argent.</p></div>
     <div><h3>Faillite et victoire</h3><p>Qui ne peut plus payer fait faillite. Classique : le dernier en jeu gagne. Rapide : titres distribués au départ, fin après deux faillites. Chrono : le plus riche gagne à la fin du temps.</p></div>
   </div>`;
@@ -1542,7 +1697,7 @@ async function joinByCode(code){
 function renderLobby(){
   if (!document.getElementById('lobby')){
     app.innerHTML = `
-    <header class="top"><div class="logo">Négoce <span>Mondial</span><small>Le jeu des richesses de la planète · 2 à 6 joueurs</small></div><div class="hdr-r">${soundBtnsHTML()}<div id="acct">${acctHTML()}</div></div></header>
+    <header class="top"><div class="logo">Négoce <span>Mondial</span><small>Le jeu des richesses de la planète · 2 à 6 joueurs</small></div><div class="hdr-r">${soundBtnsHTML()}${narrBtnHTML()}<div id="acct">${acctHTML()}</div></div></header>
     <main class="lobby" id="lobby">
       <section class="hero">
         <div>
@@ -1611,7 +1766,7 @@ function ensureGameSkeleton(){
   <main class="game" id="game" data-tab="jeu">
     <section class="board-wrap p-jeu"><div class="bctl" id="bctl"></div><div class="bview" id="bview"><div class="board" id="board"></div></div></section>
     <aside class="side" id="side" data-ledger="titres">
-      <div id="sAuction" class="p-jeu"></div><div id="sOffer" class="p-jeu"></div><div id="sAction" class="p-jeu"></div><div id="sFeed" class="p-jeu"></div><div id="sDetail" class="p-jeu"></div>
+      <div id="sAuction" class="p-jeu"></div><div id="sOffer" class="p-jeu"></div><div id="sAction" class="p-jeu"></div><div id="sFeed" class="p-jeu"></div><div id="sContracts" class="p-jeu"></div><div id="sDetail" class="p-jeu"></div>
       <nav class="ltabs" id="ltabs" aria-label="Tableaux"></nav>
       <div class="pane-l" id="pTitres"></div>
       <div class="pane-l" id="pMarche"></div>
@@ -1645,7 +1800,13 @@ function renderGame(){
   const s = game, meP = byId(s, me.id), c = s.status === 'playing' ? cur(s) : null, myTurn = !!(c && c.id === me.id);
   if (zoomOn === null){ const z = store.get('nm.zoom'); zoomOn = z ? z === '1' : isPhone(); }
   if (s.status !== lastStatus){ if (lastStatus !== null) { followKey = null; sel = null; } lastStatus = s.status; }
-  document.getElementById('bview').classList.toggle('zoom', zoomOn);
+  if (viewMode === null){ const v = store.get('nm.view'); viewMode = ['cam','3d','flat'].includes(v) ? v : store.get('nm.3d') === '0' ? 'flat' : 'cam'; }
+  const bvEl = document.getElementById('bview'), camMode = viewMode === 'cam' && s.status !== 'lobby';
+  bvEl.classList.toggle('zoom', zoomOn && !camMode);
+  bvEl.classList.toggle('v3d', viewMode === '3d' && !zoomOn && !reducedMotion());
+  bvEl.classList.toggle('cam', camMode);
+  if (!camMode && camAng !== null) camReset();
+  const tk = (s.turn || 0) + '|' + (s.landSeq || 0) + '|' + s.status; if (tk !== camTurnKey){ camTurnKey = tk; camPin = null; }
   if (draft.counter && !(s.offer && s.offer.to === me.id)) draft = {open:false, to:null, give:[], take:[], cg:0, ct:0};
   if (sel === null) sel = meP && s.status === 'playing' ? meP.pos : 0;
   const rolling = s.rollSeq && lastRoll !== null && s.rollSeq !== lastRoll; lastRoll = s.rollSeq || 0;
@@ -1662,7 +1823,7 @@ function renderGame(){
   lastPay = s.pay ? s.pay.seq : 0;
   const modeName = {classic:'Classique', rapide:'Rapide', chrono:'Chrono'}[s.options.mode];
   setHTML('gHead', `<div class="logo">Négoce <span>Mondial</span><small>Partie ${esc(s.code)} · ${modeName}${THEME === 'noir' ? ' · Marché noir' : ''}${s.options.rulesName ? ' · Règles « ' + esc(s.options.rulesName) + ' »' : ''}${s.options.mode === 'chrono' && s.status === 'playing' ? ' · <span id="chrono" class="num"></span> restantes' : ''}</small></div>
-    <div class="hdr-r">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}${soundBtnsHTML()}
+    <div class="hdr-r">${meP && s.status === 'playing' && !meP.out ? `<span class="cashpill" title="Tes liquidités">💰 ${fmt(meP.cash)}</span>` : ''}${soundBtnsHTML()}${narrBtnHTML()}
       <div class="menuwrap"><button class="btn sm ghost menubtn" data-act="menu" aria-expanded="${menuOpen}" aria-label="Menu">☰</button>
       ${menuOpen ? `<div class="menu" role="menu">
         <button data-act="back" role="menuitem">↩ Toutes les parties</button>
@@ -1682,8 +1843,16 @@ function renderGame(){
   </div>`;
   document.getElementById('board').innerHTML = CELLS.map((_,i) => cellHTML(s, i, !moving && landedNow && s.lastLand && s.lastLand.pos === i)).join('') + center;
   drawMap(document.getElementById('bMap'), s);
-  if (rolling){ AU.play('dice'); FX.diceSpin(); if (s.dice && s.dice[0] === s.dice[1]) setTimeout(() => AU.play('dbl'), 500); }
-  setHTML('bctl', `${zoomOn ? '<span class="note">Fais glisser le plateau, touche une case.</span>' : ''}${zoomOn && meP && !meP.out && s.status === 'playing' ? '<button class="btn sm ghost" data-act="center">📍 Mon pion</button>' : ''}<button class="btn sm ${zoomOn ? 'ghost' : 'gold'}" data-act="zoom">${zoomOn ? "🗺️ Vue d'ensemble" : '🔍 Zoomer'}</button>`);
+  if (camMode){
+    let hud = bvEl.querySelector('.camhudwrap'); if (!hud){ hud = document.createElement('div'); hud.className = 'camhudwrap'; bvEl.appendChild(hud); }
+    const hh = camHudHTML(s, rolling); if (hud.dataset.h !== hh || rolling){ hud.innerHTML = hh; hud.dataset.h = hh; }
+    if (!moving){ const t = camTarget(s), k = t + '|' + bvEl.clientWidth + '|' + bvEl.clientHeight; if (k !== camKey){ camKey = k; camGo(t); } }
+  } else { const hud = bvEl.querySelector('.camhudwrap'); if (hud) hud.remove(); }
+  if (landedNow && s.lastLand){ const lp = byId(s, s.lastLand.pid), pos = s.lastLand.pos; afterMove(() => postcard(pos, lp)); }
+  if (rolling){ AU.play('dice'); if (s.dice && s.dice[0] === s.dice[1]) setTimeout(() => AU.play('dbl'), 500); }
+  const vbtn = (k, t) => `<button class="btn sm ${viewMode === k ? 'on' : 'ghost'}" data-act="view" data-id="${k}" aria-pressed="${viewMode === k}">${t}</button>`;
+  const zoomable = !camMode;
+  setHTML('bctl', `<div class="vseg" role="group" aria-label="Vue du plateau">${vbtn('cam','🎥 Caméra')}${vbtn('3d','🧊 3D')}${vbtn('flat','🗺️ À plat')}</div>${zoomable && zoomOn ? '<span class="note">Fais glisser le plateau, touche une case.</span>' : ''}${zoomable && zoomOn && meP && !meP.out && s.status === 'playing' ? '<button class="btn sm ghost" data-act="center">📍 Mon pion</button>' : ''}${zoomable ? `<button class="btn sm ${zoomOn ? 'ghost' : 'gold'}" data-act="zoom">${zoomOn ? "🗺️ Vue d'ensemble" : '🔍 Zoomer'}</button>` : ''}`);
   follow(s, meP, myTurn, false);
   setHTML('sAuction', auctionHTML(s, meP));
   keepInput('sOffer', offerHTML(s));
@@ -1691,6 +1860,7 @@ function renderGame(){
   setHTML('sDetail', (selUser || !isPhone()) ? detailHTML(s).replace('<section class="panel">', '<section class="panel">' + (isPhone() ? '<button class="btn sm ghost closex" data-act="unsel" aria-label="Fermer">✕</button>' : '')) : '');
   setHTML('sPlayers', playersHTML(s));
   setHTML('sFeed', feedHTML(s));
+  setHTML('sContracts', contractsHTML(s, meP));
   setHTML('pTitres', s.status === 'lobby' ? '' : portfolioHTML(s, meP));
   setHTML('pMarche', s.status === 'lobby' ? '' : marketHTML(s));
   const tr = document.getElementById('sTrade');
@@ -1779,22 +1949,29 @@ function startMove(m){
     if (r.top < 0 || r.top > innerHeight * 0.45){ const y0 = scrollY, y1 = Math.max(0, y0 + r.top - 64); moveBack = {y0, y1}; window.scrollTo({top: y1, behavior:'smooth'}); } }
   let st = document.getElementById('moveHide'); if (!st){ st = document.createElement('style'); st.id = 'moveHide'; document.head.appendChild(st); }
   st.textContent = `#board .pawn[data-pid="${String(m.p.id).replace(/["\\]/g, '')}"]{visibility:hidden}`;
-  const old = v.querySelector('.mover'); if (old) old.remove();
-  const mv = document.createElement('span'); mv.className = 'mover'; mv.style.setProperty('--c', `var(${pcol(m.p.color)})`);
-  mv.textContent = (m.p.name || '?').slice(0,1).toUpperCase(); v.appendChild(mv);
+  v.querySelectorAll('.mover').forEach(o => o.remove());
+  const cam = camOn(), host = cam ? camLayer() : v;
+  if (cam) camGo(m.from, 1);
+  const mv = document.createElement('span'); mv.className = 'mover' + (cam ? ' stand' : ''); mv.style.setProperty('--c', `var(${pcol(m.p.color)})`);
+  mv.innerHTML = `<b>${esc((m.p.name || '?').slice(0,1).toUpperCase())}</b>`; host.appendChild(mv);
   const at = i => { const b = document.getElementById('board'), c = b && b.children[i]; if (!c) return null;
+    if (cam) return {x: c.offsetLeft + c.offsetWidth/2, y: c.offsetTop + c.offsetHeight/2, w: Math.min(c.offsetWidth, c.offsetHeight)};
     const r = c.getBoundingClientRect(), vr = v.getBoundingClientRect();
     return {x: r.left - vr.left + v.scrollLeft + r.width/2, y: r.top - vr.top + v.scrollTop + r.height/2, w: r.width}; };
-  const place = i => { const p = at(i); if (!p) return; const sz = Math.max(18, Math.min(36, p.w*0.5)); mv.style.width = mv.style.height = sz + 'px'; mv.style.fontSize = Math.round(sz*0.5) + 'px'; mv.style.transform = `translate(${p.x - sz/2}px, ${p.y - sz/2}px)`; };
+  const place = i => { const p = at(i); if (!p) return;
+    if (cam){ const sz = Math.max(16, Math.min(54, p.w*0.42)); mv.style.width = sz + 'px'; mv.style.height = sz*1.35 + 'px'; mv.style.fontSize = Math.round(sz*0.55) + 'px';
+      mv.style.transform = `translate(${p.x - sz/2}px, ${p.y - sz*1.35}px) rotateZ(${-camAng}deg) rotateX(${-CAM_TILT}deg)`; return; }
+    const sz = Math.max(18, Math.min(36, p.w*0.5)); mv.style.width = mv.style.height = sz + 'px'; mv.style.fontSize = Math.round(sz*0.5) + 'px'; mv.style.transform = `translate(${p.x - sz/2}px, ${p.y - sz/2}px)`; };
   mv.style.transition = 'none'; place(m.from);
   let k = 0; const STEP = n > 8 ? 130 : 170;
   const tick = () => {
     k++; const i = (m.from + k) % N;
+    if (cam) camGo(i, STEP + 60);
     mv.style.transition = `transform ${STEP-20}ms ease-out`; place(i);
     mv.classList.remove('hop'); void mv.offsetWidth; mv.classList.add('hop'); AU.play('hop', k);
     if (zoomOn && (k % 2 === 0 || k === n)) centerOn(i, 'smooth');
     if (k < n) setTimeout(tick, STEP);
-    else setTimeout(() => { mv.remove(); const c = document.getElementById('board').children[m.to]; if (c){ c.classList.remove('landed'); void c.offsetWidth; c.classList.add('landed'); } AU.play('land'); moveDone(); }, STEP + 120);
+    else setTimeout(() => { mv.remove(); if (cam) camKey = null; const c = document.getElementById('board').children[m.to]; if (c){ c.classList.remove('landed'); void c.offsetWidth; c.classList.add('landed'); } AU.play('land'); moveDone(); }, STEP + 120);
   };
   setTimeout(tick, 480);
   setTimeout(() => { if (moving) moveDone(); }, 480 + n*STEP + 1500);
@@ -1814,6 +1991,36 @@ function showPay(s, ev){
     ${ev.broke ? `<div class="et" style="color:#C2392B">${iPay ? 'Tu fais faillite !' : esc(payer.name) + ' fait faillite !'}</div>` : `<div class="ew">${iPay ? 'Tu paies' : esc(payer.name) + ' paie'} ${ev.items.length > 1 ? 'les joueurs qui détiennent' : 'le joueur qui détient'} au moins ${TIER_MIN[0]} % de cette richesse.</div>`}
     <button class="btn" data-act="evtClose">OK</button></div></div>`;
   el.hidden = false; clearTimeout(evtTimer); evtTimer = setTimeout(() => { el.hidden = true; }, iPay || mine ? 7000 : 4500);
+}
+
+
+/* ---------- Contrats secrets (à soi) et panneau d'actionnaire (joueur éliminé) ---------- */
+function contractsHTML(s, meP){
+  if (!s.ctOn || s.status !== 'playing' || !meP || !meP.ct || meP.out) return '';
+  const rows = meP.ct.map(c => { const C = CONTRACTS[c.id]; if (!C) return ''; const [a,b] = C.prog(s,meP), pc = Math.min(100, Math.round(a/b*100)), done = c.done;
+    const val = C.money ? `${Math.min(a,b).toLocaleString('fr-FR')} / ${b.toLocaleString('fr-FR')} M€` : `${Math.min(a,b)} / ${b}`;
+    return `<div class="ctr${done ? ' done' : ''}"><div class="ct-t"><span>${done ? '✅' : '🕵️'} ${esc(ctTxt(s,c))}</span><b class="num">+ ${fmt(scaled(s,C.prime))}</b></div>
+      <div class="ct-bar"><i style="width:${done ? 100 : pc}%"></i></div><div class="note">${done ? 'Rempli : prime encaissée' : val}</div></div>`; }).join('');
+  return `<section class="panel contracts"><h2>Mes contrats secrets</h2><p class="note">Toi seul les vois. Chaque contrat rempli rapporte sa prime tout de suite.</p>${rows}</section>`;
+}
+function shareholderHTML(s, meP){
+  if (!s.ctOn || s.status !== 'playing' || !meP || !meP.out) return '';
+  const dis = busy || !canWrite ? 'disabled' : '', b = meP.bet, bt = b ? byId(s,b.pid) : null;
+  const rows = alive(s).slice().sort((x,y) => worth(s,y) - worth(s,x)).map((q,k) => { const on = b && b.pid === q.id;
+    return `<div class="sh-row${on ? ' on' : ''}"><span>${k === 0 ? '👑 ' : ''}${pawn(q)} <b>${esc(q.name)}</b><span class="note"> · ${fmt(worth(s,q))}</span></span>
+      ${on ? `<span class="tag gold">ta mise · ×${b.odds}</span>` : `<button class="btn sm ${b ? 'ghost' : 'gold'}" data-act="bet" data-id="${esc(q.id)}" ${dis}>Miser · ×${betOdds(s,q.id)}</button>`}</div>`; }).join('');
+  return `<section class="panel action shareholder"><h2>🏦 Tu es actionnaire</h2>
+    <p class="note">Ta société a fait faillite, mais la partie continue pour toi : mise sur le joueur qui va gagner. Moins il est riche au moment où tu mises, plus la cote est forte. Tu peux changer de cheval, mais la nouvelle cote remplace l'ancienne.</p>
+    ${bt ? `<p class="note">Tu soutiens <b>${esc(bt.name)}</b> (cote ×${b.odds}, misée au tour ${b.round}).</p>` : '<p class="note"><b>Tu n\'as pas encore misé.</b></p>'}
+    <div class="sh-list">${rows}</div></section>`;
+}
+function endExtrasHTML(s){
+  if (!s.ctOn) return '';
+  const sh = s.players.filter(p => p.out && p.bet).map(p => { const t = byId(s,p.bet.pid), win = p.bet.pid === s.winner;
+    return `<li><span>${pawn(p)} ${esc(p.name)} <span class="note">a misé sur ${t ? esc(t.name) : '?'}</span></span><span class="num">${win ? `✅ gagné ×${p.bet.odds}` : '❌ perdu'}</span></li>`; }).join('');
+  const ct = s.players.filter(p => p.ct).map(p => `<li><span>${pawn(p)} ${esc(p.name)}</span><span class="ct-rev">${p.ct.map(c => `${c.done ? '✅' : '❌'} ${esc(ctTxt(s,c))}`).join('<br>')}</span></li>`).join('');
+  return `${sh ? `<h3 class="sub">🏦 Les actionnaires</h3><ol class="rank">${sh}</ol>` : ''}
+    ${ct ? `<h3 class="sub">🕵️ Contrats secrets révélés</h3><ul class="rank ctlist">${ct}</ul>` : ''}`;
 }
 
 /* ---------- Fil en direct : les derniers événements, les nouveaux s'animent ---------- */
@@ -1973,11 +2180,13 @@ function actionHTML(s, meP, c, myTurn){
     const w = byId(s, s.winner);
     return `<section class="panel action mine"><h2>🏆 ${w ? esc(w.name) + ' gagne !' : 'Partie terminée'}</h2>
       <ol class="rank">${rank.map(p => `<li><span>${pawn(p)} ${esc(p.name)}</span><span class="num">${p.out ? 'en faillite' : fmt(worth(s,p))}</span></li>`).join('')}</ol>
+      ${endExtrasHTML(s)}
       ${s.host === me.id ? `<button class="btn gold" data-act="rematch" ${dis}>Rejouer avec les mêmes joueurs</button>` : "<p class=\"note\">L'hôte peut relancer une partie avec les mêmes joueurs.</p>"}</section>`;
   }
   if (s.phase === 'auction') return '';
   if (!myTurn){
     const ph = {roll:'va lancer les dés', buy:'achète des titres', pick:'choisit les titres à mettre aux enchères', act:'termine son tour'}[s.phase] || 'joue';
+    if (meP && meP.out && s.ctOn) return shareholderHTML(s, meP) + `<section class="panel"><p class="note">${pawn(c)} ${esc(c.name)} ${ph}.</p></section>`;
     return `<section class="panel action"><h2>Au tour de ${esc(c.name)}</h2><p class="note">${pawn(c)} ${esc(c.name)} ${ph}.${meP && meP.out ? ' Tu as fait faillite, tu peux suivre la fin de la partie.' : !meP ? ' Tu regardes la partie.' : ''}</p>
       ${canSkip(s) ? `<button class="btn sm ghost" data-act="skip" ${dis}>Passer son tour (joueur absent)</button>` : meP && !meP.out && !c.bot ? `<p class="note">S'il ne joue pas pendant ${SKIP_MS/1000} secondes, n'importe quel joueur pourra passer son tour.</p>` : ''}
       ${!meP && canWrite ? reclaimHTML(s) : ''}</section>`;
@@ -2067,7 +2276,10 @@ function playersHTML(s){
   return `<section class="panel"><h2>Joueurs</h2><div class="players">${s.players.map(p => {
     const mon = s.status === 'lobby' ? 0 : Object.keys(RES).filter(r => share(s,p.id,r) >= TIER_MIN[1]).length;
     const tags = [p.id === s.host ? '<span class="tag">hôte</span>' : '', p.bot ? '<span class="tag">ordi</span>' : '', mon ? `<span class="tag gold">${mon} monopole${mon>1?'s':''}</span>` : '',
-      p.jokers ? `<span class="tag">${SPEC.joker.i} ${p.jokers}</span>` : '', p.skip ? `<span class="tag warn">${esc(SPEC.douane.l)}</span>` : '', p.out ? '<span class="tag warn">faillite</span>' : ''].join('');
+      p.jokers ? `<span class="tag">${SPEC.joker.i} ${p.jokers}</span>` : '',
+      s.ctOn && p.ct && s.status === 'playing' && !p.out ? `<span class="tag" title="Contrats secrets remplis">🕵️ ${p.ct.filter(c => c.done).length}/${p.ct.length}</span>` : '',
+      s.ctOn && !p.out && s.status === 'playing' && s.players.some(q => q.out && q.bet && q.bet.pid === p.id) ? `<span class="tag gold" title="Actionnaires qui misent sur ce joueur">📈 ${s.players.filter(q => q.out && q.bet && q.bet.pid === p.id).length}</span>` : '',
+      s.ctOn && p.out && p.bet && byId(s,p.bet.pid) ? `<span class="tag">🏦 mise sur ${esc(byId(s,p.bet.pid).name)}</span>` : '', p.skip ? `<span class="tag warn">${esc(SPEC.douane.l)}</span>` : '', p.out ? '<span class="tag warn">faillite</span>' : ''].join('');
     return `<div class="pl${c && c.id === p.id ? ' turn' : ''}${p.out ? ' out' : ''}${s.status !== 'lobby' ? ' tap' : ''}" ${s.status !== 'lobby' ? `data-act="plOpen" data-id="${esc(p.id)}" role="button" tabindex="0" aria-label="Voir les titres de ${esc(p.name)}"` : ''}>${pawn(p)}
       <div style="min-width:0"><div class="nm">${esc(p.name)}${p.id === me.id ? ' (toi)' : ''}</div><div class="sub">${s.status === 'lobby' ? '' : `<span>${owned(s,p.id).length} titres</span>`}${tags}</div></div>
       <div class="cash">${s.status === 'lobby' ? '' : fmt(p.cash) + `<small>fortune ${fmt(worth(s,p))}</small>`}</div></div>`;
@@ -2169,6 +2381,77 @@ function centerOn(i, behavior){
   v.scrollTo({left: el.offsetLeft + el.offsetWidth/2 - v.clientWidth/2, top: el.offsetTop + el.offsetHeight/2 - v.clientHeight/2, behavior: reducedMotion() ? 'auto' : behavior});
   return true;
 }
+
+/* =================== VUE CAMÉRA =================== */
+/* Le plateau est posé presque à l'horizontale ; la caméra se place derrière la case suivie et tourne avec le plateau,
+   comme si l'on était assis à la table du côté où se trouve le pion. Les pions se tiennent debout face à la caméra. */
+let viewMode = null, camPin = null, camAng = null, camKey = null, camTurnKey = null;
+const CAM_TILT = 58;
+const camOn = () => { const v = document.getElementById('bview'); return !!(v && v.classList.contains('cam')); };
+function sideAngle(i){ if (i % 12 === 0) return i === 0 ? 45 : -90*(i/12) + 45; return -90*Math.floor(i/12); }
+function camLayer(){
+  const v = document.getElementById('bview'); if (!v) return null;
+  let l = v.querySelector('.camfx'); if (!l){ l = document.createElement('div'); l.className = 'camfx'; v.appendChild(l); }
+  return l;
+}
+function camGo(i, fast){
+  const v = document.getElementById('bview'), b = document.getElementById('board'); if (!v || !b || !v.classList.contains('cam')) return;
+  const c = b.children[i]; if (!c) return;
+  const t = sideAngle(i); camAng = camAng === null ? t : camAng + (((t - camAng) % 360) + 540) % 360 - 180;
+  const W = b.offsetWidth, H = v.clientHeight; if (!W || !H) return;
+  const dx = c.offsetLeft + c.offsetWidth/2 - W/2, dy = c.offsetTop + c.offsetHeight/2 - b.offsetHeight/2;
+  /* Le plateau est mis en page en grand (largeur 205 à 245 %) plutôt qu'agrandi par scale() : le texte reste net. */
+  const tx = v.clientWidth/2 - b.offsetLeft - W/2, ty = H*0.68 - b.offsetTop - b.offsetHeight/2;
+  const tr = reducedMotion() ? 'none' : fast ? `transform ${fast}ms linear` : 'transform 1s cubic-bezier(.25,.8,.3,1)';
+  const tf = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) rotateX(${CAM_TILT}deg) rotateZ(${camAng}deg) translate(${(-dx).toFixed(1)}px, ${(-dy).toFixed(1)}px)`;
+  b.style.transition = tr; b.style.transform = tf; b.style.setProperty('--cz', camAng + 'deg');
+  const l = camLayer(); if (l){ Object.assign(l.style, {left: b.offsetLeft + 'px', top: b.offsetTop + 'px', width: W + 'px', height: b.offsetHeight + 'px', transition: tr, transform: tf}); l.style.setProperty('--cz', camAng + 'deg'); }
+}
+function camReset(){
+  const b = document.getElementById('board'); if (b && b.style.transform){ b.style.transform = ''; b.style.transition = ''; }
+  const v = document.getElementById('bview'), l = v && v.querySelector('.camfx'); if (l) l.remove();
+  camKey = null; camAng = null;
+}
+/* Où regarde la caméra quand aucun pion ne bouge : la case touchée par le joueur, sinon le pion qui joue. */
+function camTarget(s){
+  const meP = byId(s, me.id);
+  if (camPin !== null) return camPin;
+  if (s.status === 'playing') return cur(s).pos;
+  if (s.lastLand) return s.lastLand.pos;
+  return meP ? meP.pos : 0;
+}
+function camHudHTML(s, rolling){
+  const c = s.status === 'playing' ? cur(s) : null, i = camTarget(s), mine = c && c.id === me.id;
+  return `<div class="camhud">
+    <div class="dice${rolling ? ' rolling' : ''}">${die(s.dice ? s.dice[0] : 0, true)}${die(s.dice ? s.dice[1] : 0)}</div>
+    <div class="ch-info">${c ? `<div class="turnchip" data-act="plOpen" data-id="${esc(c.id)}" role="button">${pawn(c)} ${mine ? 'À toi de jouer' : esc(c.name)}</div>` : ''}
+      <div class="ch-where">📍 ${esc(cellLabel(i))}</div>
+      ${camPin !== null ? '<button class="btn sm gold" data-act="camFollow">🎯 Suivre la partie</button>' : ''}</div></div>`;
+}
+/* Carte postale : à l'arrivée sur une case pays, un zoom sur le pays avec une épingle qui tombe. */
+function postcard(i, p){
+  const c = CELLS[i]; if (!c || c.t !== 'pays' || !p || reducedMotion()) return;
+  const v = document.getElementById('bview'); if (!v || v.offsetParent === null) return;
+  const old = v.querySelector('.postcard'); if (old) old.remove();
+  const Z = ZONES[c.z], el = document.createElement('div'); el.className = 'postcard';
+  el.innerHTML = `<div class="pc-map"><canvas></canvas><i class="pin" style="--c:var(${pcol(p.color)})"><b>${esc((p.name || '?').slice(0,1).toUpperCase())}</b></i></div>
+    <div class="pc-t"><small>${p.id === me.id ? 'Ton escale' : 'Escale de ' + esc(p.name)}</small><b>${esc(Z.n)}</b><span>${RES[c.r].i} ${esc(RES[c.r].n)} · ${esc(CONT[Z.g].n)}</span></div>`;
+  v.appendChild(el);
+  const cv = el.querySelector('canvas'), CW = 220, CH = 120, dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = CW*dpr; cv.height = CH*dpr; cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
+  const x = cv.getContext('2d'); x.scale(dpr, dpr);
+  const cx = (Z.lon + 168)/360*MW, cy = (76 - Z.lat)/126*MH, span = 24, cell = CW/span, rows = CH/cell;
+  const x0 = cx - span/2, y0 = cy - rows/2;
+  for (let yy = Math.floor(y0); yy <= y0 + rows; yy++) for (let xx = Math.floor(x0); xx <= x0 + span; xx++){
+    const row = MAP_ROWS[yy], ch = row ? row[((xx % MW) + MW) % MW] : '.', land = ch && ch !== '.';
+    x.fillStyle = land ? MAPCOL[ch] : 'rgba(255,255,255,.09)';
+    x.beginPath(); x.arc((xx - x0)*cell + cell/2, (yy - y0)*cell + cell/2, cell*(land ? .4 : .14), 0, Math.PI*2); x.fill();
+  }
+  const g = x.createRadialGradient(CW/2, CH/2, 4, CW/2, CH/2, 40); g.addColorStop(0, 'rgba(246,185,50,.45)'); g.addColorStop(1, 'rgba(246,185,50,0)');
+  x.fillStyle = g; x.fillRect(0, 0, CW, CH);
+  setTimeout(() => el.classList.add('out'), 2700); setTimeout(() => el.remove(), 3200);
+}
+
 /* Suit le pion qui vient de bouger ; revient sur le tien quand c'est ton tour. */
 function follow(s, meP, myTurn, force){
   if (moving && !force) return;
@@ -2596,6 +2879,7 @@ app.addEventListener('click', e => {
     case 'shareLink': { const el = document.getElementById('invLink'); if (el && navigator.share) navigator.share({title:'Négoce Mondial', text:`Rejoins ma partie de Négoce Mondial (code ${game ? game.code : ''})`, url: el.value}).catch(() => {}); break; }
     case 'joinCode': joinByCode(); break;
     case 'hostOpts': hostOpts = !hostOpts; render(); break;
+    case 'narr': { const m = Narr.cycle(); render(); toast(m === 'voice' ? 'Commentateur : voix et texte' : m === 'text' ? 'Commentateur : texte seul' : 'Commentateur coupé'); if (m !== 'off') Narr.test(); break; }
     case 'snd': { const m = AU.pref.music, f = AU.pref.sfx;
       if (m && f) AU.toggle('music'); else if (f){ AU.toggle('sfx'); } else { AU.toggle('music'); AU.toggle('sfx'); setTimeout(() => AU.play('coin'), 120); }
       render(); toast(AU.pref.music ? 'Musique et bruitages activés' : AU.pref.sfx ? 'Musique coupée, bruitages gardés' : 'Son coupé'); break; }
@@ -2603,7 +2887,7 @@ app.addEventListener('click', e => {
     case 'createClose': { const f = document.getElementById('createForm'), i = document.getElementById('createIntro'); if (f){ f.hidden = true; if (i) i.hidden = false; } break; }
     case 'open': openGame(id); break;
     case 'back': openGame(null); break;
-    case 'sel': sel = Number(id); selUser = true; render(); { const d = document.getElementById('sDetail'); if (d && isPhone()) d.scrollIntoView({block:'nearest', behavior: reducedMotion() ? 'auto' : 'smooth'}); } break;
+    case 'sel': sel = Number(id); selUser = true; if (camOn()){ camPin = sel; camKey = null; } render(); { const d = document.getElementById('sDetail'); if (d && isPhone()) d.scrollIntoView({block:'nearest', behavior: reducedMotion() ? 'auto' : 'smooth'}); } break;
     case 'unsel': selUser = false; render(); break;
     case 'quit': if (confirmKey === 'quit'){ confirmKey = null; mutate(ACT.quit); } else { confirmKey = 'quit'; render(); } break;
     case 'cartT': { const g = game, m = g && byId(g, me.id); if (!g || !g.buy || !m) return;
@@ -2626,6 +2910,8 @@ app.addEventListener('click', e => {
     case 'tto': draft.to = id; draft.take = []; render(); break;
     case 'tpick': { const L = draft[b.dataset.kind], i = L.indexOf(id); if (i >= 0) L.splice(i,1); else L.push(id); render(); break; }
     case 'tsend': { const o = {to:draft.to, give:draft.give.slice(), take:draft.take.slice(), cg:draft.cg, ct:draft.ct}, fn = draft.counter ? ACT.counter : ACT.propose; draft = {open:false, to:null, give:[], take:[], cg:0, ct:0}; mutate(fn, o); break; }
+    case 'view': viewMode = id; store.set('nm.view', id); camKey = null; render(); break;
+    case 'camFollow': camPin = null; camKey = null; render(); break;
     case 'zoom': zoomOn = !zoomOn; store.set('nm.zoom', zoomOn ? '1' : '0'); followKey = null; render(); break;
     case 'center': { const m = game && byId(game, me.id); if (m) centerOn(m.pos, 'smooth'); break; }
     case 'tutoOk': tipsSeen.add(id); saveTuto(); coachId = null; render(); break;
@@ -2673,6 +2959,17 @@ app.addEventListener('pointermove', e => {
   tipEl.style.transform = `translate(${Math.max(8,x)}px, ${Math.max(8,y)}px)`;
 });
 app.addEventListener('pointerleave', () => { tipEl.hidden = true; tipCell = -1; });
+/* Vue 3D : le plateau s'incline légèrement vers la souris. */
+let plxRaf = null;
+document.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || plxRaf) return;
+  plxRaf = requestAnimationFrame(() => { plxRaf = null;
+    const v = document.getElementById('bview'), b = document.getElementById('board'); if (!v || !b || !v.classList.contains('v3d')) return;
+    const r = v.getBoundingClientRect(); if (!r.width) return;
+    const nx = Math.max(-1, Math.min(1, (e.clientX - r.left - r.width/2)/(r.width/2))), ny = Math.max(-1, Math.min(1, (e.clientY - r.top - r.height/2)/(r.height/2)));
+    b.style.setProperty('--px', (nx*2.5).toFixed(2) + 'deg'); b.style.setProperty('--py', (-ny*2.5).toFixed(2) + 'deg');
+  });
+}, {passive: true});
 app.addEventListener('submit', e => {
   if (e.target.id === 'joinForm'){ e.preventDefault(); joinByCode(); }
   if (e.target.id === 'chatForm'){ e.preventDefault(); const i = document.getElementById('chatIn'), v = i ? i.value.trim() : '';
@@ -2792,6 +3089,7 @@ const AU = (() => {
   return {
     play(name, ...a){ if (!pref.sfx || !ok() || !SFX[name]) return; try { SFX[name](...a); } catch(e){} },
     mood(m){ Music.mood(m); },
+    duck(on){ if (!ctx || !pref.music) return; musicBus.gain.setTargetAtTime(on ? .16 : .55, ctx.currentTime, .15); },
     pref,
     toggle(k){
       pref[k] = !pref[k]; store.set('nm.' + k, pref[k] ? null : 'off'); init();
@@ -2824,14 +3122,6 @@ const FX = {
     document.body.appendChild(b); setTimeout(() => b.remove(), 2100);
   },
   shake(){ const b = document.getElementById('board'); if (!b || reducedMotion()) return; b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); },
-  diceSpin(){
-    const ds = document.querySelectorAll('#board .dice .die'); if (!ds.length || reducedMotion()) return;
-    const finals = [...ds].map(d => d.innerHTML); let k = 0;
-    const iv = setInterval(() => {
-      ds.forEach(d => { const v = 1 + Math.floor(Math.random()*6); let h = ''; for (let i = 0; i < 9; i++) h += `<i class="${(PIPS[v]||[]).includes(i) ? 'on' : ''}"></i>`; if (d.isConnected) d.innerHTML = h; });
-      if (++k >= 7){ clearInterval(iv); ds.forEach((d,i) => { if (d.isConnected) d.innerHTML = finals[i]; }); }
-    }, 65);
-  },
   confetti(){
     if (reducedMotion()) return;
     const c = document.createElement('canvas'); c.className = 'confetti'; document.body.appendChild(c);
@@ -2863,15 +3153,13 @@ const Routes = (() => {
   function frame(t){
     raf = requestAnimationFrame(frame);
     if (t - last < 33) return; last = t;
-    const v = document.getElementById('bview'), m = document.getElementById('bMap');
-    if (!v || !m || document.visibilityState === 'hidden'){ if (cv) cv.style.display = 'none'; return; }
-    if (!cv || !cv.isConnected){ cv = document.createElement('canvas'); cv.className = 'routes'; v.appendChild(cv); }
-    const vr = v.getBoundingClientRect(), r = m.getBoundingClientRect();
-    if (!r.width){ cv.style.display = 'none'; return; }
-    cv.style.display = '';
-    const dpr = Math.min(2, window.devicePixelRatio || 1), w = r.width, h = r.height;
+    const m = document.getElementById('bMap'), box = m && m.parentElement;
+    if (!m || !box || document.visibilityState === 'hidden') return;
+    if (!cv || cv.parentElement !== box){ cv = document.createElement('canvas'); cv.className = 'routes'; box.appendChild(cv); }
+    const w = m.offsetWidth, h = m.offsetHeight; if (!w || !h) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
     if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px'; }
-    cv.style.transform = `translate(${r.left - vr.left + v.scrollLeft}px, ${r.top - vr.top + v.scrollTop}px)`;
+    cv.style.left = m.offsetLeft + 'px'; cv.style.top = m.offsetTop + 'px';
     const x = cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
     const P = z => [(ZONES[z].lon + 168)/360*w, (76 - ZONES[z].lat)/126*h];
     routes.forEach(R => {
@@ -2892,16 +3180,153 @@ const Routes = (() => {
 })();
 
 /* ---- Ce qui a changé depuis le dernier rendu : sons et animations, identiques sur tous les écrans ---- */
+/* =================== LE COMMENTATEUR =================== */
+/* Il lit les nouvelles lignes du journal (identiques sur tous les écrans) et commente les moments forts.
+   Bulle à l'écran, et voix du navigateur si elle est activée. Un commentaire à la fois, les plus importants passent devant. */
+const Narr = (() => {
+  const MODES = ['voice','text','off'];
+  let mode = MODES.includes(store.get('nm.narr')) ? store.get('nm.narr') : 'voice';
+  let lastN = null, lastGid = null, lastAt = 0, pending = null, pendTimer = null, hideTimer = null, typeTimer = null, el = null, leader = null, leaderRound = 0, voice = null;
+  const pick = a => a[Math.floor(Math.random()*a.length)];
+  const fill = (t, v) => t.replace(/\{(\w+)\}/g, (_,k) => v[k] != null ? v[k] : '').replace(/\b([dD])e (?=[AEIOUYÉÈÊ])/g, "$1'");
+  const money = t => { const m = /(-?[\d\s ]+(?:,\d+)?) M€/.exec(t || ''); return m ? parseFloat(m[1].replace(/[\s ]/g,'').replace(',', '.'))*1000 : 0; };
+  /* Répliques : {p} joueur, {q} autre joueur, {m} montant, {r} richesse, {x} détail */
+  const L = {
+    royBig:["Aïe ! {p} lâche {m} de royalties. Ça, ça pique.","{p} paie encore {m}… on commence à s'inquiéter pour sa note de frais.","{m} pour {q} ! Le {r}, c'est de l'or pour certains.","Quel carnage ! {p} verse {m}. Le comptable de {p} vient de démissionner.","{q} se frotte les mains : {m} tombent dans sa poche."],
+    roySmall:["{p} paie sa petite dîme de {m} à {q}.","Petite taxe {r} pour {p} : {m}.","{q} encaisse {m}. Les petits ruisseaux font les grandes rivières."],
+    dbl:["Double {x} ! {p} paie {m} de pénalité. La chance a un prix.","Oh, un double ! Et ça coûte {m} à {p}.","Double {x} pour {p}. Le casino gagne toujours : {m}."],
+    douaneSkip:["{p} est bloqué à la douane. Papiers, s'il vous plaît !","{p} passe un tour à la douane. Le tampon a l'air de prendre son temps.","Contrôle douanier pour {p}. Il va falloir patienter."],
+    douaneTax:["{p} paie {m} à la douane pour passer. Pas de passe-droit.","Taxe douanière de {m} pour {p}. Les douaniers sourient."],
+    buyBig:["{p} fait chauffer la carte bleue : {m} de titres d'un coup !","Grosse emplette : {p} investit {m}. Ambitieux !","{p} achète à tour de bras pour {m}. Le marché tremble."],
+    buy:["{p} met la main sur des titres {r}.","Et hop, {p} ajoute la filière {r} à sa collection.","{p} mise sur la filière {r}. Pari audacieux ?","Tiens, {p} s'intéresse de près à la filière {r}."],
+    auction:["Adjugé, vendu à {q} pour {m} !","{q} remporte l'enchère pour {m}. Belle affaire, ou pas.","Coup de marteau : {q} rafle le lot pour {m}."],
+    bank:["Personne n'en veut ! La banque rachète. Silence gêné dans la salle.","Aucune offre… la banque récupère le lot. Ambiance."],
+    auctionStart:["{p} doit vendre ! Sortez les carnets de chèques.","Enchères ! Les vautours tournent autour des titres de {p}."],
+    cardPlus:["Bonne nouvelle pour {p} : {x}. +{m} !","{p} a de la chance : {x}, et {m} en prime.","{x} : {p} empoche {m}. Certains naissent sous une bonne étoile."],
+    cardMinus:["Coup dur pour {p} : {x}. {m} envolés.","{x}… {p} paie {m}. Il fallait lire les petites lignes.","Mauvaise surprise pour {p} : {x}. Moins {m}."],
+    recevezBig:["{p} touche le jackpot : {m} sur une case {x} !","Joli lancer : {m} pour {p}.","{p} encaisse {m}. Les dés l'aiment bien aujourd'hui."],
+    lap:["{p} boucle son premier tour du monde. Le monde entier s'ouvre à lui.","Premier tour du monde pour {p}. Les choses sérieuses commencent."],
+    trade:["Poignée de main ! {p} et {q} concluent un accord. On surveille ça de près.","Transaction entre {p} et {q}. Quelqu'un vient de se faire avoir… mais qui ?"],
+    contract:["Contrat secret rempli pour {p} : {x}. Prime de {m} !","{p} dévoile un contrat secret : {x}. Bien joué, {m} de bonus.","Coup de théâtre : {p} avait une mission secrète, et elle est accomplie. {m} !"],
+    broke:["{p} fait faillite ! Un empire s'effondre.","C'est fini pour {p}. Ses titres retournent à la banque. Une minute de silence.","{p} est ruiné ! Les huissiers sont déjà là."],
+    bet:["{p}, désormais actionnaire, mise sur {q}. Cote fois {x}.","Depuis les tribunes, {p} parie sur {q} à fois {x}."],
+    newShare:["{p} devient actionnaire. La partie continue depuis les tribunes."],
+    leader:["Changement en tête : {p} prend la première place avec {m} de fortune !","{p} passe devant tout le monde avec {m}. La table est prévenue.","Nouveau leader : {p}, {m}. Qui va l'arrêter ?"],
+    win:["{p} remporte la partie ! Maître incontesté du négoce mondial.","Victoire de {p} ! Champagne, et sans note de frais cette fois.","Et c'est {p} qui l'emporte ! Rideau."]
+  };
+  let lastKey = null, lastKeyAt = 0;
+  function sayLine(key, v, prio){ return {text: fill(pick(L[key]), v), prio, k: key + '|' + (v.p || v.q || '')}; }
+  function parse(s, lines){
+    const out = []; const pay = {};
+    lines.forEach(l => {
+      let m;
+      if ((m = /^(.+) paie (.+ M€) à (.+) \(royalties (.+), \d+ %\)$/.exec(l))){ const k = m[1], a = money(m[2]); const x = pay[k] = pay[k] || {tot:0, to:m[3], best:0, r:m[4]}; x.tot += a; if (a > x.best){ x.best = a; x.to = m[3]; } return; }
+      if ((m = /^(.+) paie (.+) \(pénalité du double (\d)\)$/.exec(l))) return out.push(sayLine('dbl', {p:m[1], m:m[2], x:m[3]}, 55));
+      if ((m = /^(.+) : .+, il passera son prochain tour$/.exec(l))) return out.push(sayLine('douaneSkip', {p:m[1]}, 40));
+      if ((m = /^(.+) paie (.+) \(.+, dé rouge \d\)$/.exec(l))) return out.push(sayLine('douaneTax', {p:m[1], m:m[2]}, 40));
+      if ((m = /^(.+) achète (.+) pour (.+)$/.exec(l)) && !/Joker|avocat/.test(l)){ const amt = money(m[3]), n = (m[2].match(/ · /g) || []).length;
+        return out.push(amt >= scaled(s,5000) || n >= 3 ? sayLine('buyBig', {p:m[1], m:m[3]}, 42) : sayLine('buy', {p:m[1], r:(m[2].split(' ')[0] || '').trim()}, 18)); }
+      if ((m = /^Adjugé à (.+) pour (.+) :/.exec(l))) return out.push(sayLine('auction', {q:m[1], m:m[2]}, 60));
+      if (/^Aucun enchérisseur/.test(l)) return out.push(sayLine('bank', {}, 45));
+      if ((m = /^(.+) met aux enchères/.exec(l))) return out.push(sayLine('auctionStart', {p:m[1]}, 50));
+      if ((m = /^(.+) tire une carte .+ : (.+)$/.exec(l))){ const card = s.card; const d = card && card.t === m[2] ? card.d : 0;
+        return out.push(sayLine(d >= 0 ? 'cardPlus' : 'cardMinus', {p:m[1], x:m[2].toLowerCase(), m:fmt(Math.abs(d))}, 48)); }
+      if ((m = /^(.+) reçoit (.+) \(case .+, (\d+) aux dés\)$/.exec(l)) && +m[3] >= 10) return out.push(sayLine('recevezBig', {p:m[1], m:m[2], x:TH.rec}, 30));
+      if ((m = /^(.+) boucle son premier tour du monde$/.exec(l))) return out.push(sayLine('lap', {p:m[1]}, 20));
+      if ((m = /^Transaction conclue : (.+?) cède .+ de (.+)$/.exec(l))) return out.push(sayLine('trade', {p:m[1], q:m[2]}, 45));
+      if ((m = /^(.+) remplit un contrat secret : « (.+) » et touche une prime de (.+)$/.exec(l))) return out.push(sayLine('contract', {p:m[1], x:m[2].toLowerCase(), m:m[3]}, 80));
+      if ((m = /^(.+) (fait faillite|abandonne la partie) : ses titres/.exec(l))) return out.push(sayLine('broke', {p:m[1]}, 90));
+      if ((m = /^(.+?),? (?:devient actionnaire et mise|actionnaire, mise) sur (.+) \(cote ×(.+)\)$/.exec(l))) return out.push(sayLine('bet', {p:m[1], q:m[2], x:m[3]}, 35));
+      if ((m = /^(.+) devient actionnaire : /.exec(l))) return out.push(sayLine('newShare', {p:m[1]}, 34));
+      if (/a éliminé tous ses adversaires|est le plus riche avec/.test(l) && s.winner){ const w = byId(s, s.winner); if (w) out.push(sayLine('win', {p:w.name}, 100)); }
+    });
+    Object.keys(pay).forEach(k => { const x = pay[k]; const big = x.tot >= scaled(s,4000);
+      out.push(sayLine(big ? 'royBig' : 'roySmall', {p:k, q:x.to, m:fmt(x.tot), r:x.r}, big ? 70 : 25)); });
+    return out;
+  }
+  function ensureEl(){
+    if (el && el.isConnected) return el;
+    el = document.createElement('div'); el.className = 'narr'; el.hidden = true; el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
+    el.innerHTML = '<span class="mic" aria-hidden="true">🎙️</span><p></p>'; document.body.appendChild(el); return el;
+  }
+  function pickVoice(){
+    if (voice || !window.speechSynthesis) return voice;
+    const vs = speechSynthesis.getVoices().filter(v => /^fr/i.test(v.lang)); if (!vs.length) return null;
+    voice = vs.find(v => /google/i.test(v.name)) || vs.find(v => /thomas|amélie|amelie|denise|henri|paul|julie|hortense/i.test(v.name)) || vs.find(v => /fr-FR/i.test(v.lang)) || vs[0];
+    return voice;
+  }
+  if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { voice = null; pickVoice(); };
+  function speak(text){
+    if (mode !== 'voice' || !window.speechSynthesis || document.visibilityState === 'hidden') return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/(\d+(?:,\d+)?) M€/g, '$1 millions').replace(/×/g, 'fois ').replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, ''));
+      u.lang = 'fr-FR'; const v = pickVoice(); if (v) u.voice = v; u.rate = 1.07; u.pitch = 1; u.volume = 1;
+      u.onstart = () => AU.duck(true); u.onend = u.onerror = () => AU.duck(false);
+      speechSynthesis.speak(u);
+    } catch(e){}
+  }
+  function show(c){
+    if (mode === 'off') return;
+    lastAt = Date.now(); lastKey = c.k; lastKeyAt = lastAt;
+    const e = ensureEl(), pEl = e.querySelector('p');
+    clearTimeout(hideTimer); clearInterval(typeTimer);
+    e.hidden = false; e.classList.remove('in'); void e.offsetWidth; e.classList.add('in');
+    if (reducedMotion()) pEl.textContent = c.text;
+    else { let k = 0; pEl.textContent = ''; typeTimer = setInterval(() => { k += 2; pEl.textContent = c.text.slice(0, k); if (k >= c.text.length) clearInterval(typeTimer); }, 22); }
+    speak(c.text);
+    hideTimer = setTimeout(() => { e.hidden = true; }, Math.max(4200, c.text.length*70));
+  }
+  function queue(c){
+    if (!c) return;
+    /* pas deux fois le même genre de remarque sur le même joueur à la suite, et les petits achats seulement de temps en temps */
+    if (c.prio < 60 && c.k === lastKey && Date.now() - lastKeyAt < 25000) return;
+    if (c.prio < 20 && Math.random() < .6) return;
+    if (pending && pending.prio > c.prio) return;
+    pending = c; clearTimeout(pendTimer);
+    const gap = c.prio >= 80 ? 0 : Math.max(0, 4500 - (Date.now() - lastAt));
+    pendTimer = setTimeout(() => afterMove(() => setTimeout(() => { const x = pending; pending = null; if (x) show(x); }, 350)), gap);
+  }
+  return {
+    feed(s){
+      if (mode === 'off' || !s || s.status === 'lobby') { if (s) { lastN = s.logN || s.log.length; lastGid = gid; } return; }
+      const n = s.logN || s.log.length;
+      if (lastGid !== gid || lastN === null || n < lastN){ lastGid = gid; lastN = n; leader = null; return; }
+      const k = n - lastN; lastN = n; if (k <= 0) return;
+      const lines = s.log.slice(-Math.min(k, s.log.length));
+      const cs = parse(s, lines);
+      /* changement de leader, une fois par tour de table au plus */
+      if (s.status === 'playing' && s.round !== leaderRound){ const top = richest(s); leaderRound = s.round;
+        if (top && leader && top.id !== leader && s.round > 2) cs.push(sayLine('leader', {p:top.name, m:fmt(worth(s,top))}, 32)); if (top) leader = top.id; }
+      cs.sort((a,b) => b.prio - a.prio); queue(cs[0]);
+    },
+    mode: () => mode,
+    cycle(){
+      mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length]; store.set('nm.narr', mode === 'voice' ? null : mode);
+      if (mode !== 'voice' && window.speechSynthesis) speechSynthesis.cancel();
+      if (mode === 'off' && el) el.hidden = true;
+      return mode;
+    },
+    test(){ show({text: mode === 'voice' ? 'Le commentateur est dans la place. Que la meilleure fortune gagne !' : 'Le commentateur écrira ses remarques ici.', prio:1}); }
+  };
+})();
+function narrBtnHTML(){
+  const m = Narr.mode(), ico = m === 'voice' ? '🎙️' : m === 'text' ? '💬' : '🤐';
+  const lbl = m === 'voice' ? 'Commentateur : voix et texte (toucher : texte seul)' : m === 'text' ? 'Commentateur : texte seul (toucher : couper)' : 'Commentateur coupé (toucher : voix et texte)';
+  return `<button class="btn sm ghost sndbtn${m === 'off' ? ' off' : ''}" data-act="narr" title="${lbl}" aria-label="${lbl}">${ico}</button>`;
+}
+
 let fxPrev = null, routesKey = null, autoEndKey = null, autoEndTimer = null;
 function fxDiff(s){
   const meP = byId(s, me.id), playing = s.status === 'playing', c = playing ? cur(s) : null, myTurn = !!(c && meP && c.id === me.id);
   AU.mood(!playing ? 0 : s.phase === 'auction' ? 2 : myTurn ? 1 : 0);
+  Narr.feed(s);
   const ownKey = JSON.stringify(s.owners || {}) + '|' + s.players.map(p => p.out ? 0 : 1).join('');
   if (ownKey !== routesKey){ routesKey = ownKey; Routes.update(s); }
   const snap = {gid, status: s.status, turnId: c ? c.id : null, phase: s.phase, round: s.round,
     cash: Object.fromEntries(s.players.map(p => [p.id, p.cash])), nOwned: Object.keys(s.owners || {}).length,
     tiers: meP ? Object.keys(RES).filter(r => tierOf(share(s, me.id, r)) >= 0).map(r => r + tierOf(share(s, me.id, r))).join(',') : '',
-    bk: s.bankrupts || 0, aTick: s.auction ? (s.auction.i + ':' + s.auction.tick) : null, aBidder: s.auction ? s.auction.bidder : null, aOn: !!s.auction};
+    bk: s.bankrupts || 0, ct: s.ctEv ? s.ctEv.seq : 0, aTick: s.auction ? (s.auction.i + ':' + s.auction.tick) : null, aBidder: s.auction ? s.auction.bidder : null, aOn: !!s.auction};
   const P = fxPrev; fxPrev = snap;
   if (!P || P.gid !== gid) return;
   /* argent : bulles « + / − » au-dessus des liquidités et des fiches joueurs */
@@ -2927,6 +3352,7 @@ function fxDiff(s){
   if (myD > 0) later(() => AU.play('coin', myD >= 3000));
   else if (myD < 0 && !bought && !snap.aOn && !P.aOn) later(() => AU.play('pay'));
   if (snap.bk > P.bk){ AU.play('bankrupt'); FX.shake(); }
+  if (snap.ct !== P.ct && s.ctEv){ const ev = s.ctEv, who = byId(s, ev.by); later(() => { AU.play('tier'); if (ev.by === me.id) FX.banner('Contrat secret rempli !', '+ ' + fmt(ev.prime)); else if (who) FX.banner(`🕵️ ${who.name}`, 'remplit un contrat secret'); }); }
   if (snap.status === 'over' && P.status !== 'over'){ if (s.winner === me.id){ AU.play('win'); FX.confetti(); FX.banner('Victoire !', 'Tu es le maître du négoce mondial'); } else { AU.play('win'); FX.banner('Partie terminée', byId(s, s.winner) ? byId(s, s.winner).name + ' l\'emporte' : ''); } }
 }
 /* Fin de tour automatique quand il n'y a plus rien à décider : à 6, chaque clic économisé compte. */
