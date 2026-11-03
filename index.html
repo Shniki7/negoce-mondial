@@ -715,6 +715,7 @@ body:has(.coach:not([hidden])) .narr{bottom:220px}
 @keyframes pinDrop{from{transform:translateY(-60px) rotate(-45deg);opacity:0}60%{opacity:1}}
 @media (max-width:900px){#bview.cam{aspect-ratio:1/1.08}#bview.cam .board{width:245%}.postcard{top:8px;padding:6px 10px 6px 6px}.pc-map canvas{width:150px!important;height:82px!important}.pc-t b{font-size:19px}.camhud .die3d{--s:36px}}
 @media (prefers-reduced-motion:reduce){.postcard,.postcard.out,.pc-map .pin{animation:none}}
+.extl{margin:10px 2px 4px}
 </style>
 
 <div class="wrap" id="app">
@@ -1022,10 +1023,17 @@ function payRoyalties(s,p,r){
   if (items.length) s.pay = ev;
   return ok;
 }
+/* Case pays : les titres du pays, plus UN seul titre de la richesse de la case ailleurs dans le monde par arrêt
+   (sinon une richesse à 6 titres comme la Laine pouvait être raflée en entier d'un coup). */
+const EXT_MAX = 1;
+const isExt = (b,id) => !!(b && b.mode === 'zone' && TITLES[id] && TITLES[id].z !== b.zone);
 function eligible(s,p){
   const b = s.buy; if (!b) return [];
   const free = id => !s.owners[id];
-  if (b.mode === 'zone') return (s.dyn && b.res ? [...new Set([...ZONE_T[b.zone], ...RES_T[b.res]])] : ZONE_T[b.zone]).filter(free);
+  if (b.mode === 'zone'){
+    const ext = s.dyn && b.res && (b.ext || 0) < EXT_MAX ? RES_T[b.res].filter(id => TITLES[id].z !== b.zone) : [];
+    return [...ZONE_T[b.zone], ...ext].filter(free);
+  }
   const have = new Set(ownedRes(s,p.id));
   if (b.mode === 'cont') return Object.keys(TITLES).filter(id => { const t = TITLES[id]; return free(id) && have.has(t.r) && ZONES[t.z].g === b.cont && !CONT[b.cont].excl.includes(t.z); });
   return Object.keys(TITLES).filter(id => free(id) && have.has(TITLES[id].r));
@@ -1156,8 +1164,9 @@ const ACT = {
     const p = cur(s), ids = [...new Set(arg.ids)], el = eligible(s,p);
     if (!ids.length && !arg.end) return false;
     if (ids.length > s.buy.left || ids.some(id => !el.includes(id))) return false;
+    const nExt = ids.filter(id => isExt(s.buy,id)).length; if (nExt > EXT_MAX - (s.buy.ext || 0)) return false;
     const total = ids.reduce((t,id) => t + TITLES[id].price, 0); if (total > p.cash) return false;
-    ids.forEach(id => { p.cash -= TITLES[id].price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; });
+    ids.forEach(id => { p.cash -= TITLES[id].price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; if (isExt(s.buy,id)) s.buy.ext = (s.buy.ext || 0) + 1; });
     if (ids.length) log(s, `${p.name} achète ${ids.map(tName).join(', ')} pour ${fmt(total)}`);
     if (arg.end) ACT.endBuy(s,who);
   },
@@ -1165,7 +1174,7 @@ const ACT = {
     if (!isTurn(s,who,'buy')) return false;
     const p = cur(s), t = TITLES[id];
     if (!t || s.buy.left <= 0 || !eligible(s,p).includes(id) || p.cash < t.price) return false;
-    p.cash -= t.price; s.owners[id] = p.id; s.buy.left--; s.buy.n++;
+    p.cash -= t.price; s.owners[id] = p.id; s.buy.left--; s.buy.n++; if (isExt(s.buy,id)) s.buy.ext = (s.buy.ext || 0) + 1;
     log(s, `${p.name} achète ${tName(id)} pour ${fmt(t.price)}`);
   },
   endBuy(s,who){
@@ -1482,7 +1491,7 @@ function cleanGame(d){
   if (Array.isArray(d.dice)) d.dice = d.dice.map(v => Math.max(0, Math.min(6, Math.round(N(v)))));
   const a = d.auction; if (a){ ['i','start','price','dur','tick'].forEach(k => { a[k] = N(a[k]); }); a.lots = Array.isArray(a.lots) ? a.lots.map(l => (Array.isArray(l) ? l : []).filter(id => isTid(id))) : []; if (!a.lots[a.i]) d.auction = null; }
   if (d.pick) d.pick.need = Math.max(1, N(d.pick.need));
-  if (d.buy){ d.buy.left = N(d.buy.left); d.buy.n = N(d.buy.n); }
+  if (d.buy){ d.buy.left = N(d.buy.left); d.buy.n = N(d.buy.n); d.buy.ext = N(d.buy.ext); }
   if (d.offer){ d.offer.cg = N(d.offer.cg); d.offer.ct = N(d.offer.ct); d.offer.round = N(d.offer.round) || 1; ['give','take'].forEach(k => { d.offer[k] = (Array.isArray(d.offer[k]) ? d.offer[k] : []).filter(r => RES[r]); }); }
   const o = d.options; o.mode = ['classic','rapide','chrono'].includes(o.mode) ? o.mode : 'classic'; o.theme = o.theme === 'noir' ? 'noir' : 'classique';
   o.minutes = Math.max(5, Math.min(240, Math.round(N(o.minutes)) || 45)); o.practice = !!o.practice; o.rulesName = o.rulesName ? String(o.rulesName).replace(/[<>]/g, '').slice(0, 40) : null;
@@ -1644,7 +1653,7 @@ function rulesHTML(){
     <div><h3>Le but</h3><p>Achète des titres de production, réunis les titres d'une même richesse et encaisse des royalties jusqu'à ruiner tous tes adversaires.</p></div>
     <div><h3>Les titres</h3><p>Chaque richesse est découpée en titres, chacun représentant une part de la production mondiale. Tes parts d'une même richesse s'additionnent.</p></div>
     <div><h3>Les royalties</h3><p>Dès ${TIER_MIN[0]} % d'une richesse, tu touches des royalties quand un joueur s'arrête sur sa case. Paliers : ${TIER_MIN.map((m,k) => m + ' %' + (k === 1 ? ' (monopole)' : '')).join(', ')}, de plus en plus chers.</p></div>
-    <div><h3>Cases pays</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du pays${wide ? ', ou de la richesse de la case n\'importe où dans le monde' : ''}. En fin de tour, tu paies les royalties de la richesse de la case.</p></div>
+    <div><h3>Cases pays</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du pays${wide ? ', plus 1 titre de la richesse de la case ailleurs dans le monde' : ''}. En fin de tour, tu paies les royalties de la richesse de la case.</p></div>
     <div><h3>Cases ${esc(TH.rec)}</h3><p>Tu reçois ${fmt(g ? scaled(g,RULE.rec) : RULE.rec)} × le total des dés, puis tu paies les royalties de la richesse de la case.</p></div>
     <div><h3>Choix continental et mondial</h3><p>Achète jusqu'à ${RULE.maxBuy} titres du continent (sans les États-Unis, la Russie, la Chine ni l'Inde) ou du monde entier après un premier tour, mais seulement pour des richesses que tu possèdes déjà.</p></div>
     <div><h3>Enchères et Joker</h3><p>Après un premier tour du monde, la case Enchères t'oblige à vendre autant de titres que le dé rouge, à partir de ${RULE.aucStart} % de leur prix. Le Joker (${fmt(RULE.jokerPrice)}) t'en dispense une fois.</p></div>
@@ -2065,7 +2074,7 @@ function tipHTML(s, i){
     const hold = alive(s).map(p => ({p, sh: share(s,p.id,c.r)})).filter(x => x.sh > 0).sort((a,b) => b.sh - a.sh);
     const free = c.t === 'pays' ? (s.dyn ? [...new Set([...ZONE_T[c.z], ...RES_T[c.r]])] : ZONE_T[c.z]).filter(id => !s.owners[id]).length : 0;
     body = `<div class="tt">${c.t === 'pays' ? esc(ZONES[c.z].n) : esc(TH.rec) + ' · +' + fmt(scaled(s,RULE.rec)) + ' × dés'}</div><div class="tr">${RES[c.r].i} ${esc(RES[c.r].n)}</div>
-      ${c.t === 'pays' ? `<div class="tn">${free} titre${free>1?'s':''} libre${free>1?'s':''}${s.dyn ? ' (pays + ' + esc(RES[c.r].n) + ' partout)' : ' sur ' + ZONE_T[c.z].length}</div>` : ''}
+      ${c.t === 'pays' ? `<div class="tn">${free} titre${free>1?'s':''} libre${free>1?'s':''}${s.dyn ? ' (pays + 1 ' + esc(RES[c.r].n) + ' ailleurs)' : ' sur ' + ZONE_T[c.z].length}</div>` : ''}
       <div class="tn">${hold.length ? hold.map(x => `${pawn(x.p)} ${esc(x.p.name)} ${x.sh} %${tierOf(x.sh) >= 0 ? ' → ' + fmt(tierRoy(c.r, tierOf(x.sh))) : ''}`).join('<br>') : 'Aucune royalty pour l\'instant'}</div>`;
   } else if (c.t === 'cont') body = `<div class="tt">${TH.contIco} ${esc(TH.cont)} · ${esc(CONT[c.c].n)}</div>`;
   else body = `<div class="tt">${SPEC[c.t].i} ${esc(SPEC[c.t].l)}</div>`;
@@ -2123,7 +2132,10 @@ function portfolioHTML(s, meP){
 }
 function marketHTML(s){
   const seg = `<div class="seg" role="group" aria-label="Filtrer">${[['all','Tout'],...Object.entries(KINDS)].map(([k,n]) => `<button class="${mkFilter===k?'on':''}" data-act="mkFilter" data-id="${k}">${n}</button>`).join('')}</div>`;
-  const rs = Object.keys(RES).filter(r => mkFilter === 'all' || RES[r].k === mkFilter);
+  /* Les richesses les plus disputées en haut : % vendu, puis plus grosse part détenue par un joueur, puis valeur. */
+  const soldOf = r => RES_T[r].reduce((t,id) => t + (s.owners[id] ? TITLES[id].pct : 0), 0);
+  const topOf = r => Math.max(0, ...alive(s).map(p => share(s,p.id,r)));
+  const rs = Object.keys(RES).filter(r => mkFilter === 'all' || RES[r].k === mkFilter).sort((a,b) => soldOf(b) - soldOf(a) || topOf(b) - topOf(a) || RES[b].v - RES[a].v);
   const rows = rs.map(r => {
     const total = RES_T[r].reduce((t,id) => t + TITLES[id].pct, 0);
     const holders = alive(s).map(p => ({p, sh:share(s,p.id,r)})).filter(x => x.sh > 0).sort((a,b) => b.sh - a.sh);
@@ -2203,8 +2215,11 @@ function actionHTML(s, meP, c, myTurn){
     cart = cart.filter(id => list.includes(id));
     const title = b.mode === 'zone' ? ZONES[b.zone].n : b.mode === 'cont' ? `${TH.cont} · ${CONT[b.cont].n}` : SPEC.mondial.l;
     const total = cart.reduce((t,id) => t + TITLES[id].price, 0), after = meP.cash - total;
-    const rows = list.map(id => { const t = TITLES[id], on = cart.includes(id), dim = !on && (cart.length >= b.left || t.price > after);
-      return `<div class="trow pickable${on ? ' incart' : ''}${dim ? ' dim' : ''}" data-act="cartT" data-id="${id}" role="button" tabindex="0" aria-pressed="${on}"><span class="tn"><span class="ck">${on ? '✓' : ''}</span>${rchip(t.r)} ${b.mode !== 'zone' || t.z !== b.zone ? `<span class="note">${esc(ZONES[t.z].n)}${share(s,me.id,t.r) ? ' · tu as ' + share(s,me.id,t.r) + ' %' : ''}</span>` : `${share(s,me.id,t.r) ? `<span class="note">tu as ${share(s,me.id,t.r)} %</span>` : ''}`}</span><span class="pct">${t.pct} %</span><span class="num">${fmt(t.price)}</span></div>`; }).join('');
+    const extFull = cart.filter(id => isExt(b,id)).length + (b.ext || 0) >= EXT_MAX;
+    const rowOf = id => { const t = TITLES[id], on = cart.includes(id), dim = !on && (cart.length >= b.left || t.price > after || (isExt(b,id) && extFull));
+      return `<div class="trow pickable${on ? ' incart' : ''}${dim ? ' dim' : ''}" data-act="cartT" data-id="${id}" role="button" tabindex="0" aria-pressed="${on}"><span class="tn"><span class="ck">${on ? '✓' : ''}</span>${rchip(t.r)} ${b.mode !== 'zone' || t.z !== b.zone ? `<span class="note">${esc(ZONES[t.z].n)}${share(s,me.id,t.r) ? ' · tu as ' + share(s,me.id,t.r) + ' %' : ''}</span>` : `${share(s,me.id,t.r) ? `<span class="note">tu as ${share(s,me.id,t.r)} %</span>` : ''}`}</span><span class="pct">${t.pct} %</span><span class="num">${fmt(t.price)}</span></div>`; };
+    const inZ = list.filter(id => !isExt(b,id)), outZ = list.filter(id => isExt(b,id));
+    const rows = inZ.map(rowOf).join('') + (outZ.length ? `<div class="label extl">${RES[b.res].i} ${esc(RES[b.res].n)} ailleurs dans le monde · 1 titre au plus</div>` + outZ.map(rowOf).join('') : '');
     const byRes = {}; cart.forEach(id => { const r = TITLES[id].r; byRes[r] = (byRes[r]||0) + TITLES[id].pct; });
     const impact = Object.keys(byRes).map(r => { const a0 = share(s,me.id,r), a1 = a0 + byRes[r], t0 = tierOf(a0), t1 = tierOf(a1);
       return `<div class="imp">${RES[r].i} ${esc(RES[r].n)} : ${a0} % → <b class="${t1 > t0 ? 'up' : ''}">${a1} %</b> · ${t1 < 0 ? `pas encore de royalties (il faut ${TIER_MIN[0]} %)` : `royalty ${fmt(tierRoy(r,t1))}${t1 > t0 ? ' · nouveau palier !' : ''}`}</div>`; }).join('');
@@ -2312,12 +2327,12 @@ function detailHTML(s){
     const free = ZONE_T[c.z].filter(id => !s.owners[id]).length, wide = s.dyn || s.status === 'lobby';
     const elsewhere = wide ? RES_T[c.r].filter(id => TITLES[id].z !== c.z) : [], freeEl = elsewhere.filter(id => !s.owners[id]).length;
     return `<section class="panel cellinfo"><div class="label">Case pays · ${CONT[ZONES[c.z].g].n}</div><h2>${esc(ZONES[c.z].n)} <span class="rchipwrap">${rchip(c.r)}</span></h2>
-      <p class="note">En t'arrêtant ici : 1. tu peux acheter jusqu'à ${RULE.maxBuy} titres de ce pays${wide ? ` ou de ${esc(RES[c.r].n)} n'importe où dans le monde` : ''}, 2. puis tu paies les royalties ${esc(RES[c.r].n)} (la richesse de la case) à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>
+      <p class="note">En t'arrêtant ici : 1. tu peux acheter jusqu'à ${RULE.maxBuy} titres de ce pays${wide ? `, dont 1 titre de ${esc(RES[c.r].n)} ailleurs dans le monde au plus` : ''}, 2. puis tu paies les royalties ${esc(RES[c.r].n)} (la richesse de la case) à ceux qui en ont au moins ${TIER_MIN[0]} %.</p>
       ${s.status === 'playing' ? payHereHTML(s,c.r) : ''}
       <h3 class="sub">1 · Titres à vendre dans ce pays <span class="note">${free}/${ZONE_T[c.z].length} encore libres</span></h3>
       <p class="note">Un titre = une part de la production mondiale d'une richesse. À droite : son prix s'il est libre, sinon le pion de son propriétaire.</p>
       <div class="list zone">${ZONE_T[c.z].slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>
-      ${elsewhere.length ? `<h3 class="sub">+ ${RES[c.r].i} ${esc(RES[c.r].n)} ailleurs dans le monde <span class="note">${freeEl}/${elsewhere.length} encore libres</span></h3>
+      ${elsewhere.length ? `<h3 class="sub">+ 1 titre ${RES[c.r].i} ${esc(RES[c.r].n)} ailleurs dans le monde <span class="note">${freeEl}/${elsewhere.length} encore libres</span></h3>
       <div class="list zone">${elsewhere.slice().sort((a,b) => TITLES[b].pct - TITLES[a].pct).map(id => titleRow(s,id)).join('')}</div>` : ''}
       <h3 class="sub">2 · Royalties de la case : ${RES[c.r].i} ${esc(RES[c.r].n)}</h3>${resPanel(s,c.r)}</section>`;
   }
@@ -2895,6 +2910,7 @@ app.addEventListener('click', e => {
       if (i >= 0) cart.splice(i,1);
       else { const tot = cart.reduce((t,x) => t + TITLES[x].price, 0) + TITLES[id].price;
         if (cart.length >= g.buy.left){ toast(`Tu ne peux pas prendre plus de ${g.buy.left} titre${g.buy.left>1?'s':''} ici.`); return; }
+        if (isExt(g.buy,id) && cart.filter(x => isExt(g.buy,x)).length + (g.buy.ext || 0) >= EXT_MAX){ toast('Un seul titre hors du pays par arrêt : décoche l\'autre d\'abord.'); return; }
         if (tot > m.cash){ toast("Pas assez d'argent pour ajouter ce titre à ta sélection."); return; }
         cart.push(id); }
       render(); break; }
